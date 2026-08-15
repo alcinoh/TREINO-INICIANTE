@@ -32,37 +32,44 @@
             color: var(--text-main);
             position: relative;
             box-shadow: 0 0 40px rgba(0,0,0,0.5);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
         .subtitle { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 5px; }
 
-        .timer-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .timer-section { padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
-        .timer-circle { position: relative; width: 240px; height: 240px; margin-bottom: 30px; }
+        .timer-circle { position: relative; width: 220px; height: 220px; margin-bottom: 20px; }
         .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
         .timer-circle circle { fill: none; stroke-width: 8; stroke-linecap: round; }
         .timer-circle .bg-circle { stroke: #334155; }
         .timer-circle .progress-circle { stroke: var(--primary); transition: stroke-dashoffset 1s linear, stroke 0.5s ease; }
         
         .time-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
-        .time-text { font-size: 3.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
-        .type-badge { margin-top: 10px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; background: var(--primary); color: #fff; }
+        .time-text { font-size: 3.2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+        .type-badge { margin-top: 5px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; background: var(--primary); color: #fff; }
 
-        .exercise-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; line-height: 1.2; }
-        .exercise-desc { font-size: 0.95rem; color: var(--text-muted); min-height: 45px; }
+        .exercise-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
+        .exercise-desc { font-size: 0.9rem; color: var(--text-muted); min-height: 40px; }
 
-        .up-next { background: var(--bg-card); margin: 0 20px 20px; padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary); transition: border-color 0.3s ease;}
+        /* NOVO: Player de Música Integrado */
+        .music-player { background: rgba(0,0,0,0.3); margin: 0 20px 15px; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
+        .music-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
+        .music-controls { display: flex; gap: 20px; align-items: center; }
+        .music-btn { background: var(--bg-card); color: var(--text-main); border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .music-btn:active { transform: scale(0.9); background: var(--primary); color: #000; }
+        .yt-container { position: absolute; left: -9999px; /* Esconde o vídeo do YouTube da tela */ }
+
+        .up-next { background: var(--bg-card); margin: 0 20px 15px; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary); transition: border-color 0.3s ease;}
         .up-next-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .up-next-title { font-size: 0.95rem; font-weight: 600; margin-top: 2px; }
+        .up-next-title { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
 
-        .controls { display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 0 20px 30px; }
-        button { border: none; outline: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s, opacity 0.2s; padding: 18px; }
-        button:active { transform: scale(0.95); }
-        .btn-play { background-color: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
-        .btn-skip { background-color: var(--bg-card); color: var(--text-main); padding: 18px 25px; }
+        .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 0 20px 30px; margin-top: auto; }
+        .btn-play { background-color: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; padding: 15px; cursor: pointer;}
+        .btn-skip { background-color: var(--bg-card); color: var(--text-main); border: none; border-radius: 12px; font-weight: 600; padding: 15px 20px; cursor: pointer;}
         
         .global-progress { height: 6px; background: #334155; width: 100%; position: absolute; bottom: 0; left: 0; }
         .global-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
@@ -94,6 +101,16 @@
         <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
     </div>
 
+    <!-- PLAYER DE MÚSICA -->
+    <div class="music-player">
+        <div class="music-info" id="musicStatus">🎵 Trilha Sonora: Rock/Metal Mix</div>
+        <div class="music-controls">
+            <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
+            <button class="music-btn" onclick="nextMusic()">⏭</button>
+        </div>
+    </div>
+    <div class="yt-container"><div id="youtube-player"></div></div>
+
     <div class="up-next" id="upNextBox">
         <div>
             <div class="up-next-label">A seguir</div>
@@ -111,13 +128,67 @@
     </div>
 </div>
 
+<!-- API do YouTube -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
 <script>
+    // --- INTEGRAÇÃO YOUTUBE (NOVO) ---
+    let ytPlayer;
+    let isMusicPlaying = false;
+
+    function onYouTubeIframeAPIReady() {
+        ytPlayer = new YT.Player('youtube-player', {
+            height: '10',
+            width: '10',
+            playerVars: {
+                // Toca uma playlist gerada automaticamente por busca das bandas!
+                'listType': 'search',
+                'list': 'Sepultura Raimundos Charlie Brown Jr Metallica Korn Offspring',
+                'controls': 0,
+                'rel': 0,
+                'autoplay': 0
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function onPlayerReady(event) {
+        document.getElementById('musicStatus').textContent = "🎵 Playlist Pronta (Dê o Play)";
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.PLAYING) {
+            isMusicPlaying = true;
+            document.getElementById('btnMusicPlay').textContent = "⏸";
+            document.getElementById('musicStatus').textContent = "🤘 Som na Caixa";
+        } else if (event.data == YT.PlayerState.PAUSED) {
+            isMusicPlaying = false;
+            document.getElementById('btnMusicPlay').textContent = "▶️";
+            document.getElementById('musicStatus').textContent = "🎵 Música Pausada";
+        }
+    }
+
+    function toggleMusic() {
+        if (!ytPlayer || !ytPlayer.playVideo) return;
+        if (isMusicPlaying) { ytPlayer.pauseVideo(); } 
+        else { ytPlayer.playVideo(); }
+    }
+
+    function nextMusic() {
+        if (!ytPlayer || !ytPlayer.nextVideo) return;
+        ytPlayer.nextVideo();
+    }
+
+    // --- LÓGICA DO TREINO (MANTIDA) ---
     const workoutPlan = [
         { title: "Aquecimento Esteira", duration: 180, desc: "Caminhada leve (4.5 a 5.0 km/h).", type: "Cardio", color: "var(--cardio)" },
         { title: "Ritmo Constante", duration: 300, desc: "Caminhada acelerada (5.5 a 6.2 km/h, Inclinação 1-2%).", type: "Cardio", color: "var(--cardio)" },
         { title: "Subida Moderada", duration: 120, desc: "Aumente a inclinação para 3-4% (5.0 a 5.5 km/h).", type: "Cardio", color: "var(--cardio)" },
         { title: "Desaceleração", duration: 120, desc: "Reduza para 4.0 km/h e tire a inclinação.", type: "Cardio", color: "var(--cardio)" },
-        { title: "Transição para Força", duration: 40, desc: "Desça da esteira, pegue os halteres de 4kg e prepare-se.", type: "Transição", color: "var(--transicao)" }
+        { title: "Transição", duration: 40, desc: "Desça da esteira, pegue os halteres de 4kg e prepare-se.", type: "Transição", color: "var(--transicao)" }
     ];
 
     for(let i=1; i<=3; i++) {
@@ -152,19 +223,18 @@
     const totalWorkoutSeconds = workoutPlan.reduce((acc, step) => acc + step.duration, 0);
     const circleCircumference = 283;
 
-    // --- SISTEMA DE SINTETIZADOR DE VOZ (NOVO) ---
+    // --- VOZ E BIPS ---
     const synth = window.speechSynthesis;
     function speak(text) {
-        if (synth.speaking) { synth.cancel(); } // Cancela a fala anterior se sobrepor
+        if (synth.speaking) synth.cancel();
         if (text !== '') {
             const utterThis = new SpeechSynthesisUtterance(text);
-            utterThis.lang = 'pt-BR'; // Português do Brasil
-            utterThis.rate = 1.05; // Velocidade da fala
+            utterThis.lang = 'pt-BR';
+            utterThis.rate = 1.05;
             synth.speak(utterThis);
         }
     }
 
-    // --- SISTEMA DE EFEITOS SONOROS (BIPS) ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep(freq, type, duration) {
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -231,10 +301,8 @@
         }
     }
 
-    // --- GERENCIAMENTO DE FALAS DE ACORDO COM A FASE ---
     function triggerVoiceCoach(stepObj, nextStepObj) {
         let frase = "";
-        
         if (stepObj.type === "Transição") {
             if (nextStepObj) frase = "Atenção. Prepare-se para " + (nextStepObj.spoken || nextStepObj.title);
             else frase = "Transição.";
@@ -245,7 +313,15 @@
         } else if (stepObj.title === "Volta à Calma") {
             frase = "Treino quase concluído. Vamos para a volta à calma. Caminhe devagar e alongue.";
         }
+        
+        // Abaixa a música levemente enquanto a voz fala (se suportado/possível)
+        if (ytPlayer && isMusicPlaying) ytPlayer.setVolume(30);
         speak(frase);
+        
+        // Tenta voltar o volume após 4 segundos
+        setTimeout(() => {
+            if (ytPlayer && isMusicPlaying) ytPlayer.setVolume(100);
+        }, 4000);
     }
 
     function toggleTimer() {
@@ -258,7 +334,6 @@
             btn.style.backgroundColor = "#f59e0b"; 
             isRunning = true;
             
-            // FALA INICIAL
             if (currentStep === 0 && timeLeft === workoutPlan[0].duration) {
                 speak("Treino iniciado. Vamos começar com o aquecimento na esteira.");
             }
@@ -276,8 +351,6 @@
             currentStep++;
             timeLeft = workoutPlan[currentStep].duration;
             updateUI();
-            
-            // CHAMA A VOZ DO TREINADOR PARA O PRÓXIMO PASSO
             triggerVoiceCoach(workoutPlan[currentStep], workoutPlan[currentStep + 1]);
         } else {
             finishWorkout();
@@ -299,6 +372,7 @@
         document.getElementById('globalFill').style.width = `100%`;
         
         speak("Parabéns! Você concluiu o seu treino de trinta minutos. Excelente trabalho!");
+        if (ytPlayer) ytPlayer.pauseVideo();
     }
 
     updateUI();
