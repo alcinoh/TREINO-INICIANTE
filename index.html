@@ -16,6 +16,7 @@
             --transicao: #64748b;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --warning: #f59e0b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
@@ -36,9 +37,11 @@
             overflow-y: auto;
         }
 
+        /* HEADER E GAMIFICAÇÃO */
         header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
         .subtitle { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 5px; }
+        .streak-badge { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.3); }
 
         .timer-section { padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
@@ -55,7 +58,7 @@
         .exercise-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
         .exercise-desc { font-size: 0.9rem; color: var(--text-muted); min-height: 40px; }
 
-        /* Player de Música HTML5 */
+        /* PLAYER DE MÚSICA */
         .music-player { background: rgba(0,0,0,0.3); margin: 0 20px 15px; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
         .music-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; text-align: center; line-height: 1.4; }
         .music-controls { display: flex; gap: 20px; align-items: center; }
@@ -82,6 +85,7 @@
     <header>
         <h1>Treino Iniciante 1</h1>
         <div class="subtitle" id="globalTime">00:00 / 30:00</div>
+        <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
     </header>
 
     <div class="timer-section">
@@ -100,14 +104,13 @@
         <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
     </div>
 
-    <!-- PLAYER DE MÚSICA NATIVO (WEB RADIO) -->
+    <!-- PLAYER DE MÚSICA ATUALIZADO -->
     <div class="music-player">
-        <div class="music-info" id="musicStatus">📻 Heavy Metal Radio (Desligado)</div>
+        <div class="music-info" id="musicStatus">📻 Rock / Gym Music (Desligado)</div>
         <div class="music-controls">
             <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
             <button class="music-btn" onclick="nextStation()">⏭</button>
         </div>
-        <!-- Tag invisível de áudio -->
         <audio id="rockRadio" preload="none"></audio>
     </div>
 
@@ -129,17 +132,21 @@
 </div>
 
 <script>
-    // --- NOVO SISTEMA DE MÚSICA (RÁDIO HTML5) ---
+    // --- GAMIFICAÇÃO: CARREGAR HISTÓRICO ---
+    let treinosConcluidos = localStorage.getItem('treinos_alcino') || 0;
+    treinosConcluidos = parseInt(treinosConcluidos);
+    document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
+
+    // --- NOVO SISTEMA DE MÚSICA ---
     const stations = [
         { name: "Heavy Metal", url: "https://listen.181fm.com/181-hardrock_128k.mp3" },
         { name: "Alt Rock", url: "https://listen.181fm.com/181-buzz_128k.mp3" },
-        { name: "Classic Rock", url: "https://listen.181fm.com/181-classic_128k.mp3" }
+        { name: "Gym Workout (Eletrônica)", url: "https://listen.181fm.com/181-energy98_128k.mp3" } // Substituto da rádio falha
     ];
     let currentStationIndex = 0;
     const radioPlayer = document.getElementById('rockRadio');
     let isMusicPlaying = false;
 
-    // Inicializa a rádio na primeira estação
     radioPlayer.src = stations[currentStationIndex].url;
 
     function toggleMusic() {
@@ -149,13 +156,13 @@
             document.getElementById('btnMusicPlay').textContent = "▶️";
             document.getElementById('musicStatus').textContent = `📻 ${stations[currentStationIndex].name} (Pausado)`;
         } else {
-            document.getElementById('musicStatus').textContent = "Carregando som...";
+            document.getElementById('musicStatus').textContent = "Conectando...";
             radioPlayer.play().then(() => {
                 isMusicPlaying = true;
                 document.getElementById('btnMusicPlay').textContent = "⏸";
-                document.getElementById('musicStatus').textContent = `🤘 Tocando: ${stations[currentStationIndex].name}`;
+                document.getElementById('musicStatus').textContent = `🎧 Tocando: ${stations[currentStationIndex].name}`;
             }).catch(e => {
-                document.getElementById('musicStatus').textContent = "⚠️ Erro na conexão da rádio";
+                document.getElementById('musicStatus').textContent = "⚠️ Rádio offline, tente a próxima";
                 console.error("Erro no player:", e);
             });
         }
@@ -166,11 +173,11 @@
         if (currentStationIndex >= stations.length) currentStationIndex = 0;
         
         radioPlayer.src = stations[currentStationIndex].url;
-        document.getElementById('musicStatus').textContent = `Trocando para ${stations[currentStationIndex].name}...`;
+        document.getElementById('musicStatus').textContent = `Sintonizando: ${stations[currentStationIndex].name}...`;
         
         if (isMusicPlaying) {
             radioPlayer.play().then(() => {
-                document.getElementById('musicStatus').textContent = `🤘 Tocando: ${stations[currentStationIndex].name}`;
+                document.getElementById('musicStatus').textContent = `🎧 Tocando: ${stations[currentStationIndex].name}`;
             });
         } else {
             document.getElementById('musicStatus').textContent = `📻 ${stations[currentStationIndex].name} (Pronto)`;
@@ -190,16 +197,12 @@
     for(let i=1; i<=3; i++) {
         workoutPlan.push({ title: `Agachamento`, duration: 40, desc: "Halteres nas mãos. Desça o quadril jogando o peso nos calcanhares.", type: "Força", color: "var(--forca)", spoken: "Agachamento com halteres" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para a Remada", type: "Transição", color: "var(--transicao)" });
-
         workoutPlan.push({ title: `Remada Curvada`, duration: 40, desc: "Tronco inclinado, puxe os pesos em direção ao quadril.", type: "Força", color: "var(--forca)", spoken: "Remada Curvada" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para o Desenvolvimento", type: "Transição", color: "var(--transicao)" });
-
         workoutPlan.push({ title: `Desenvolvimento`, duration: 40, desc: "Eleve os halteres acima da cabeça sem curvar as costas.", type: "Força", color: "var(--forca)", spoken: "Desenvolvimento de ombros" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Deite no chão para a Ponte", type: "Transição", color: "var(--transicao)" });
-
         workoutPlan.push({ title: `Ponte p/ Glúteos`, duration: 40, desc: "Pesos no quadril. Suba contraindo os glúteos.", type: "Força", color: "var(--forca)", spoken: "Ponte para Glúteos" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Continue no chão para o Abdominal", type: "Transição", color: "var(--transicao)" });
-
         workoutPlan.push({ title: `Abdominal Infra`, duration: 40, desc: "Mãos sob o quadril, eleve as pernas devagar.", type: "Força", color: "var(--forca)", spoken: "Abdominal Infra" });
 
         if(i < 3) {
@@ -208,7 +211,6 @@
             workoutPlan.push({ title: "Fim do Circuito", duration: 15, desc: "Guarde os halteres devagar.", type: "Transição", color: "var(--transicao)" });
         }
     }
-
     workoutPlan.push({ title: "Volta à Calma", duration: 120, desc: "Caminhe pela sala, respire fundo e alongue.", type: "Relaxamento", color: "var(--cardio)" });
 
     let currentStep = 0;
@@ -310,14 +312,9 @@
             frase = "Treino quase concluído. Vamos para a volta à calma. Caminhe devagar e alongue.";
         }
         
-        // Abaixa o volume da música para a voz falar
         if (isMusicPlaying) radioPlayer.volume = 0.15;
         speak(frase);
-        
-        // Volta o volume normal após 4 segundos
-        setTimeout(() => {
-            if (isMusicPlaying) radioPlayer.volume = 1.0;
-        }, 4000);
+        setTimeout(() => { if (isMusicPlaying) radioPlayer.volume = 1.0; }, 4000);
     }
 
     function toggleTimer() {
@@ -367,7 +364,13 @@
         document.getElementById('upNextBox').classList.add('hidden');
         document.getElementById('globalFill').style.width = `100%`;
         
-        speak("Parabéns! Você concluiu o seu treino de trinta minutos. Excelente trabalho!");
+        // SALVA O TREINO NA MEMÓRIA
+        treinosConcluidos++;
+        localStorage.setItem('treinos_alcino', treinosConcluidos);
+        document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
+        
+        speak(`Parabéns! Você concluiu o seu treino de trinta minutos e chegou à sua marca de ${treinosConcluidos} treinos realizados. Excelente trabalho!`);
+        
         if (isMusicPlaying) {
             radioPlayer.pause();
             document.getElementById('btnMusicPlay').textContent = "▶️";
