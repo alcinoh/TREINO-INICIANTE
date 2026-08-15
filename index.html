@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | 30 Minutos</title>
+    <title>Treino Alcino | Iniciante 1</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -24,7 +24,7 @@
 
         #app-container {
             width: 100%;
-            max-width: 420px; /* Mantém proporção de celular no PC */
+            max-width: 420px;
             background-color: var(--bg-dark);
             min-height: 100vh;
             display: flex;
@@ -35,12 +35,10 @@
             overflow: hidden;
         }
 
-        /* Header */
         header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
         .subtitle { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 5px; }
 
-        /* Main Timer Area */
         .timer-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
         
         .timer-circle { position: relative; width: 240px; height: 240px; margin-bottom: 30px; }
@@ -56,23 +54,19 @@
         .exercise-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; line-height: 1.2; }
         .exercise-desc { font-size: 0.95rem; color: var(--text-muted); min-height: 45px; }
 
-        /* Up Next Area */
         .up-next { background: var(--bg-card); margin: 0 20px 20px; padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary); transition: border-color 0.3s ease;}
         .up-next-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
         .up-next-title { font-size: 0.95rem; font-weight: 600; margin-top: 2px; }
 
-        /* Controls */
         .controls { display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 0 20px 30px; }
         button { border: none; outline: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s, opacity 0.2s; padding: 18px; }
         button:active { transform: scale(0.95); }
         .btn-play { background-color: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
         .btn-skip { background-color: var(--bg-card); color: var(--text-main); padding: 18px 25px; }
         
-        /* Progress Bar Global */
         .global-progress { height: 6px; background: #334155; width: 100%; position: absolute; bottom: 0; left: 0; }
         .global-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
 
-        /* Utility */
         .hidden { display: none !important; }
     </style>
 </head>
@@ -80,7 +74,7 @@
 
 <div id="app-container">
     <header>
-        <h1>Treino Alcino</h1>
+        <h1>Treino Iniciante 1</h1>
         <div class="subtitle" id="globalTime">00:00 / 30:00</div>
     </header>
 
@@ -118,7 +112,6 @@
 </div>
 
 <script>
-    // Gerador do plano de treino profissional (dividido por exercícios)
     const workoutPlan = [
         { title: "Aquecimento Esteira", duration: 180, desc: "Caminhada leve (4.5 a 5.0 km/h).", type: "Cardio", color: "var(--cardio)" },
         { title: "Ritmo Constante", duration: 300, desc: "Caminhada acelerada (5.5 a 6.2 km/h, Inclinação 1-2%).", type: "Cardio", color: "var(--cardio)" },
@@ -127,21 +120,20 @@
         { title: "Transição para Força", duration: 40, desc: "Desça da esteira, pegue os halteres de 4kg e prepare-se.", type: "Transição", color: "var(--transicao)" }
     ];
 
-    // Adiciona os 3 rounds de circuito dinamicamente
     for(let i=1; i<=3; i++) {
-        workoutPlan.push({ title: `Agachamento (${i}/3)`, duration: 40, desc: "Halteres nas mãos. Desça o quadril jogando o peso nos calcanhares.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: `Agachamento`, duration: 40, desc: "Halteres nas mãos. Desça o quadril jogando o peso nos calcanhares.", type: "Força", color: "var(--forca)", spoken: "Agachamento com halteres" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para a Remada", type: "Transição", color: "var(--transicao)" });
 
-        workoutPlan.push({ title: `Remada Curvada (${i}/3)`, duration: 40, desc: "Tronco inclinado, puxe os pesos em direção ao quadril.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: `Remada Curvada`, duration: 40, desc: "Tronco inclinado, puxe os pesos em direção ao quadril.", type: "Força", color: "var(--forca)", spoken: "Remada Curvada" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para o Desenvolvimento", type: "Transição", color: "var(--transicao)" });
 
-        workoutPlan.push({ title: `Desenvolvimento (${i}/3)`, duration: 40, desc: "Eleve os halteres acima da cabeça sem curvar as costas.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: `Desenvolvimento`, duration: 40, desc: "Eleve os halteres acima da cabeça sem curvar as costas.", type: "Força", color: "var(--forca)", spoken: "Desenvolvimento de ombros" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Deite no chão para a Ponte", type: "Transição", color: "var(--transicao)" });
 
-        workoutPlan.push({ title: `Ponte p/ Glúteos (${i}/3)`, duration: 40, desc: "Pesos no quadril. Suba contraindo os glúteos.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: `Ponte p/ Glúteos`, duration: 40, desc: "Pesos no quadril. Suba contraindo os glúteos.", type: "Força", color: "var(--forca)", spoken: "Ponte para Glúteos" });
         workoutPlan.push({ title: "Transição", duration: 15, desc: "Continue no chão para o Abdominal", type: "Transição", color: "var(--transicao)" });
 
-        workoutPlan.push({ title: `Abdominal Infra (${i}/3)`, duration: 40, desc: "Mãos sob o quadril, eleve as pernas devagar.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: `Abdominal Infra`, duration: 40, desc: "Mãos sob o quadril, eleve as pernas devagar.", type: "Força", color: "var(--forca)", spoken: "Abdominal Infra" });
 
         if(i < 3) {
             workoutPlan.push({ title: `Descanso Round ${i}`, duration: 50, desc: "Respire fundo e beba água.", type: "Descanso", color: "var(--descanso)" });
@@ -152,16 +144,27 @@
 
     workoutPlan.push({ title: "Volta à Calma", duration: 120, desc: "Caminhe pela sala, respire fundo e alongue.", type: "Relaxamento", color: "var(--cardio)" });
 
-    // Lógica do App
     let currentStep = 0;
     let timeLeft = workoutPlan[0].duration;
     let timerInterval = null;
     let isRunning = false;
     let totalSecondsElapsed = 0;
     const totalWorkoutSeconds = workoutPlan.reduce((acc, step) => acc + step.duration, 0);
-    const circleCircumference = 283; // 2 * pi * r (r=45)
+    const circleCircumference = 283;
 
-    // Sistema de Som
+    // --- SISTEMA DE SINTETIZADOR DE VOZ (NOVO) ---
+    const synth = window.speechSynthesis;
+    function speak(text) {
+        if (synth.speaking) { synth.cancel(); } // Cancela a fala anterior se sobrepor
+        if (text !== '') {
+            const utterThis = new SpeechSynthesisUtterance(text);
+            utterThis.lang = 'pt-BR'; // Português do Brasil
+            utterThis.rate = 1.05; // Velocidade da fala
+            synth.speak(utterThis);
+        }
+    }
+
+    // --- SISTEMA DE EFEITOS SONOROS (BIPS) ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep(freq, type, duration) {
         if(audioCtx.state === 'suspended') audioCtx.resume();
@@ -187,35 +190,26 @@
         const step = workoutPlan[currentStep];
         const nextStepObj = workoutPlan[currentStep + 1];
 
-        if (!step) {
-            finishWorkout();
-            return;
-        }
+        if (!step) { finishWorkout(); return; }
 
-        // Textos
         document.getElementById('exTitle').textContent = step.title;
         document.getElementById('exDesc').textContent = step.desc;
         document.getElementById('timeDisplay').textContent = formatTime(timeLeft);
         document.getElementById('typeBadge').textContent = step.type;
         document.getElementById('typeBadge').style.backgroundColor = step.color;
-        
-        // Cores Dinâmicas
         document.getElementById('circleProgress').style.stroke = step.color;
         document.getElementById('upNextBox').style.borderColor = nextStepObj ? nextStepObj.color : 'transparent';
         
-        // Círculo de Progresso Local
         const pct = timeLeft / step.duration;
         const offset = circleCircumference - (pct * circleCircumference);
         document.getElementById('circleProgress').style.strokeDashoffset = offset;
 
-        // Próximo Exercício
         if (nextStepObj) {
             document.getElementById('upNextTitle').textContent = nextStepObj.title;
         } else {
             document.getElementById('upNextBox').classList.add('hidden');
         }
 
-        // Progresso Global
         document.getElementById('globalTime').textContent = `${formatTime(totalSecondsElapsed)} / ${formatTime(totalWorkoutSeconds)}`;
         const globalPct = (totalSecondsElapsed / totalWorkoutSeconds) * 100;
         document.getElementById('globalFill').style.width = `${globalPct}%`;
@@ -226,16 +220,32 @@
             timeLeft--;
             totalSecondsElapsed++;
             
-            // Beeps nos últimos 3 segundos
             if (timeLeft > 0 && timeLeft <= 3) {
-                playBeep(600, 'sine', 0.2); // Beep curto
+                playBeep(600, 'sine', 0.2); 
             } else if (timeLeft === 0) {
-                playBeep(900, 'triangle', 0.6); // Beep longo de troca
+                playBeep(900, 'triangle', 0.6); 
                 nextStep();
-                return; // Evita atualizar a UI com 0 antes de pular
+                return; 
             }
             updateUI();
         }
+    }
+
+    // --- GERENCIAMENTO DE FALAS DE ACORDO COM A FASE ---
+    function triggerVoiceCoach(stepObj, nextStepObj) {
+        let frase = "";
+        
+        if (stepObj.type === "Transição") {
+            if (nextStepObj) frase = "Atenção. Prepare-se para " + (nextStepObj.spoken || nextStepObj.title);
+            else frase = "Transição.";
+        } else if (stepObj.type === "Descanso") {
+            frase = "Tempo de descanso. Respire fundo.";
+        } else if (stepObj.type === "Força" || stepObj.type === "Cardio") {
+            frase = "Valendo! " + (stepObj.spoken || stepObj.title);
+        } else if (stepObj.title === "Volta à Calma") {
+            frase = "Treino quase concluído. Vamos para a volta à calma. Caminhe devagar e alongue.";
+        }
+        speak(frase);
     }
 
     function toggleTimer() {
@@ -245,8 +255,13 @@
         if (!isRunning) {
             timerInterval = setInterval(tick, 1000);
             btn.textContent = "PAUSAR TREINO";
-            btn.style.backgroundColor = "#f59e0b"; // Amarelo pausar
+            btn.style.backgroundColor = "#f59e0b"; 
             isRunning = true;
+            
+            // FALA INICIAL
+            if (currentStep === 0 && timeLeft === workoutPlan[0].duration) {
+                speak("Treino iniciado. Vamos começar com o aquecimento na esteira.");
+            }
         } else {
             clearInterval(timerInterval);
             btn.textContent = "CONTINUAR";
@@ -257,11 +272,13 @@
 
     function nextStep() {
         if (currentStep < workoutPlan.length - 1) {
-            // Avança para o próximo
-            totalSecondsElapsed += timeLeft; // Adiciona o tempo pulado ao global
+            totalSecondsElapsed += timeLeft; 
             currentStep++;
             timeLeft = workoutPlan[currentStep].duration;
             updateUI();
+            
+            // CHAMA A VOZ DO TREINADOR PARA O PRÓXIMO PASSO
+            triggerVoiceCoach(workoutPlan[currentStep], workoutPlan[currentStep + 1]);
         } else {
             finishWorkout();
         }
@@ -270,7 +287,7 @@
     function finishWorkout() {
         clearInterval(timerInterval);
         document.getElementById('exTitle').textContent = "Treino Concluído! 🏆";
-        document.getElementById('exDesc').textContent = "Excelente trabalho, Alcino! Registre seu treino e descanse.";
+        document.getElementById('exDesc').textContent = "Excelente trabalho! Registre seu treino e descanse.";
         document.getElementById('timeDisplay').textContent = "00:00";
         document.getElementById('typeBadge').textContent = "FIM";
         document.getElementById('typeBadge').style.backgroundColor = "var(--descanso)";
@@ -280,9 +297,10 @@
         document.querySelector('.btn-skip').classList.add('hidden');
         document.getElementById('upNextBox').classList.add('hidden');
         document.getElementById('globalFill').style.width = `100%`;
+        
+        speak("Parabéns! Você concluiu o seu treino de trinta minutos. Excelente trabalho!");
     }
 
-    // Inicialização
     updateUI();
 </script>
 
