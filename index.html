@@ -17,6 +17,7 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --warning: #f59e0b;
+            --google: #4285F4;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
@@ -37,7 +38,6 @@
             overflow-y: auto;
         }
 
-        /* HEADER E GAMIFICAÇÃO */
         header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
         .subtitle { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 5px; }
@@ -58,7 +58,6 @@
         .exercise-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
         .exercise-desc { font-size: 0.9rem; color: var(--text-muted); min-height: 40px; }
 
-        /* PLAYER DE MÚSICA */
         .music-player { background: rgba(0,0,0,0.3); margin: 0 20px 15px; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
         .music-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; text-align: center; line-height: 1.4; }
         .music-controls { display: flex; gap: 20px; align-items: center; }
@@ -70,8 +69,10 @@
         .up-next-title { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
 
         .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 0 20px 30px; margin-top: auto; }
+        .controls-single { display: flex; flex-direction: column; padding: 0 20px 30px; margin-top: auto; }
         .btn-play { background-color: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; padding: 15px; cursor: pointer;}
         .btn-skip { background-color: var(--bg-card); color: var(--text-main); border: none; border-radius: 12px; font-weight: 600; padding: 15px 20px; cursor: pointer;}
+        .btn-calendar { background-color: var(--google); color: #fff; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3); border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; padding: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;}
         
         .global-progress { height: 6px; background: #334155; width: 100%; position: absolute; bottom: 0; left: 0; }
         .global-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
@@ -104,8 +105,8 @@
         <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
     </div>
 
-    <!-- PLAYER DE MÚSICA ATUALIZADO -->
-    <div class="music-player">
+    <!-- PLAYER DE MÚSICA -->
+    <div class="music-player" id="musicBox">
         <div class="music-info" id="musicStatus">📻 Rock / Gym Music (Desligado)</div>
         <div class="music-controls">
             <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
@@ -121,9 +122,15 @@
         </div>
     </div>
 
-    <div class="controls">
+    <!-- CONTROLES DO TREINO -->
+    <div class="controls" id="playControls">
         <button class="btn-play" id="btnPlay" onclick="toggleTimer()">COMEÇAR TREINO</button>
-        <button class="btn-skip" onclick="nextStep()">PULAR</button>
+        <button class="btn-skip" id="btnSkip" onclick="nextStep()">PULAR</button>
+    </div>
+
+    <!-- CONTROLE FINAL (CALENDAR) ESCONDIDO INICIALMENTE -->
+    <div class="controls-single hidden" id="finishControls">
+        <button class="btn-calendar" onclick="saveToCalendar()">📅 Salvar no Google Calendar</button>
     </div>
 
     <div class="global-progress">
@@ -132,16 +139,15 @@
 </div>
 
 <script>
-    // --- GAMIFICAÇÃO: CARREGAR HISTÓRICO ---
     let treinosConcluidos = localStorage.getItem('treinos_alcino') || 0;
     treinosConcluidos = parseInt(treinosConcluidos);
     document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
 
-    // --- NOVO SISTEMA DE MÚSICA ---
+    // --- SISTEMA DE MÚSICA ---
     const stations = [
         { name: "Heavy Metal", url: "https://listen.181fm.com/181-hardrock_128k.mp3" },
         { name: "Alt Rock", url: "https://listen.181fm.com/181-buzz_128k.mp3" },
-        { name: "Gym Workout (Eletrônica)", url: "https://listen.181fm.com/181-energy98_128k.mp3" } // Substituto da rádio falha
+        { name: "Gym Workout", url: "https://listen.181fm.com/181-energy98_128k.mp3" } 
     ];
     let currentStationIndex = 0;
     const radioPlayer = document.getElementById('rockRadio');
@@ -162,8 +168,7 @@
                 document.getElementById('btnMusicPlay').textContent = "⏸";
                 document.getElementById('musicStatus').textContent = `🎧 Tocando: ${stations[currentStationIndex].name}`;
             }).catch(e => {
-                document.getElementById('musicStatus').textContent = "⚠️ Rádio offline, tente a próxima";
-                console.error("Erro no player:", e);
+                document.getElementById('musicStatus').textContent = "⚠️ Tente a próxima rádio";
             });
         }
     }
@@ -171,7 +176,6 @@
     function nextStation() {
         currentStationIndex++;
         if (currentStationIndex >= stations.length) currentStationIndex = 0;
-        
         radioPlayer.src = stations[currentStationIndex].url;
         document.getElementById('musicStatus').textContent = `Sintonizando: ${stations[currentStationIndex].name}...`;
         
@@ -221,14 +225,25 @@
     const totalWorkoutSeconds = workoutPlan.reduce((acc, step) => acc + step.duration, 0);
     const circleCircumference = 283;
 
-    // --- VOZ E BIPS ---
+    // --- NOVO SISTEMA DE VOZ INTELIGENTE (AUDIO DUCKING) ---
     const synth = window.speechSynthesis;
-    function speak(text) {
+    
+    function speakIntelligent(text) {
         if (synth.speaking) synth.cancel();
+        
         if (text !== '') {
+            // 1. Abaixa o volume da música
+            if (isMusicPlaying) radioPlayer.volume = 0.15;
+            
             const utterThis = new SpeechSynthesisUtterance(text);
             utterThis.lang = 'pt-BR';
             utterThis.rate = 1.05;
+            
+            // 2. Evento disparado EXATAMENTE quando a voz termina de falar
+            utterThis.onend = function() {
+                if (isMusicPlaying) radioPlayer.volume = 1.0;
+            };
+            
             synth.speak(utterThis);
         }
     }
@@ -312,9 +327,7 @@
             frase = "Treino quase concluído. Vamos para a volta à calma. Caminhe devagar e alongue.";
         }
         
-        if (isMusicPlaying) radioPlayer.volume = 0.15;
-        speak(frase);
-        setTimeout(() => { if (isMusicPlaying) radioPlayer.volume = 1.0; }, 4000);
+        speakIntelligent(frase);
     }
 
     function toggleTimer() {
@@ -328,7 +341,7 @@
             isRunning = true;
             
             if (currentStep === 0 && timeLeft === workoutPlan[0].duration) {
-                speak("Treino iniciado. Vamos começar com o aquecimento na esteira.");
+                speakIntelligent("Treino iniciado. Vamos começar com o aquecimento na esteira.");
             }
         } else {
             clearInterval(timerInterval);
@@ -353,29 +366,50 @@
     function finishWorkout() {
         clearInterval(timerInterval);
         document.getElementById('exTitle').textContent = "Treino Concluído! 🏆";
-        document.getElementById('exDesc').textContent = "Excelente trabalho! Registre seu treino e descanse.";
+        document.getElementById('exDesc').textContent = "Salve este treino na sua agenda para não perder o ritmo.";
         document.getElementById('timeDisplay').textContent = "00:00";
         document.getElementById('typeBadge').textContent = "FIM";
         document.getElementById('typeBadge').style.backgroundColor = "var(--descanso)";
         document.getElementById('circleProgress').style.strokeDashoffset = 0;
         document.getElementById('circleProgress').style.stroke = "var(--descanso)";
-        document.getElementById('btnPlay').classList.add('hidden');
-        document.querySelector('.btn-skip').classList.add('hidden');
+        
+        // Esconde os botões antigos e o player de música, mostra o botão do Calendar
+        document.getElementById('playControls').classList.add('hidden');
         document.getElementById('upNextBox').classList.add('hidden');
+        document.getElementById('musicBox').classList.add('hidden');
+        document.getElementById('finishControls').classList.remove('hidden');
+        
         document.getElementById('globalFill').style.width = `100%`;
         
-        // SALVA O TREINO NA MEMÓRIA
         treinosConcluidos++;
         localStorage.setItem('treinos_alcino', treinosConcluidos);
         document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
         
-        speak(`Parabéns! Você concluiu o seu treino de trinta minutos e chegou à sua marca de ${treinosConcluidos} treinos realizados. Excelente trabalho!`);
+        speakIntelligent(`Parabéns! Você concluiu o seu treino de trinta minutos e chegou à sua marca de ${treinosConcluidos} treinos realizados.`);
         
         if (isMusicPlaying) {
             radioPlayer.pause();
-            document.getElementById('btnMusicPlay').textContent = "▶️";
-            document.getElementById('musicStatus').textContent = "Treino Finalizado";
         }
+    }
+
+    // --- INTEGRAÇÃO GOOGLE CALENDAR ---
+    function saveToCalendar() {
+        const title = encodeURIComponent("🔥 Treino Concluído: Iniciante 1");
+        const details = encodeURIComponent("App de Treino:\n- 12 min Cardio (Esteira)\n- 16 min Força (Halteres de 4kg)\n- 2 min Volta à calma\n\nExcelente trabalho!");
+        
+        // Pega o horário atual para registrar no calendário
+        const now = new Date();
+        const endTime = new Date(now.getTime() + 30 * 60000); // Adiciona 30 minutos
+        
+        // Formata data ISO para o padrão do Google Calendar (YYYYMMDDTHHMMSSZ)
+        const formatGoogleDate = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g,"");
+        
+        const startTimeStr = formatGoogleDate(now);
+        const endTimeStr = formatGoogleDate(endTime);
+        
+        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${startTimeStr}/${endTimeStr}`;
+        
+        window.open(url, '_blank');
     }
 
     updateUI();
