@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Treino Alcino | 30 Minutos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --primary: #38bdf8;
+            --cardio: #0ea5e9;
+            --forca: #ef4444;
+            --descanso: #10b981;
+            --transicao: #64748b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        body { background-color: #000; display: flex; justify-content: center; min-height: 100vh; }
+
+        #app-container {
+            width: 100%;
+            max-width: 420px; /* Mantém proporção de celular no PC */
+            background-color: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-main);
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* Header */
+        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
+        .subtitle { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 5px; }
+
+        /* Main Timer Area */
+        .timer-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        
+        .timer-circle { position: relative; width: 240px; height: 240px; margin-bottom: 30px; }
+        .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .timer-circle circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+        .timer-circle .bg-circle { stroke: #334155; }
+        .timer-circle .progress-circle { stroke: var(--primary); transition: stroke-dashoffset 1s linear, stroke 0.5s ease; }
+        
+        .time-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
+        .time-text { font-size: 3.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+        .type-badge { margin-top: 10px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; background: var(--primary); color: #fff; }
+
+        .exercise-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 10px; line-height: 1.2; }
+        .exercise-desc { font-size: 0.95rem; color: var(--text-muted); min-height: 45px; }
+
+        /* Up Next Area */
+        .up-next { background: var(--bg-card); margin: 0 20px 20px; padding: 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary); transition: border-color 0.3s ease;}
+        .up-next-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .up-next-title { font-size: 0.95rem; font-weight: 600; margin-top: 2px; }
+
+        /* Controls */
+        .controls { display: grid; grid-template-columns: 1fr auto; gap: 15px; padding: 0 20px 30px; }
+        button { border: none; outline: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; cursor: pointer; transition: transform 0.1s, opacity 0.2s; padding: 18px; }
+        button:active { transform: scale(0.95); }
+        .btn-play { background-color: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); }
+        .btn-skip { background-color: var(--bg-card); color: var(--text-main); padding: 18px 25px; }
+        
+        /* Progress Bar Global */
+        .global-progress { height: 6px; background: #334155; width: 100%; position: absolute; bottom: 0; left: 0; }
+        .global-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
+
+        /* Utility */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <header>
+        <h1>Treino Alcino</h1>
+        <div class="subtitle" id="globalTime">00:00 / 30:00</div>
+    </header>
+
+    <div class="timer-section">
+        <div class="timer-circle">
+            <svg viewBox="0 0 100 100">
+                <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
+                <circle class="progress-circle" id="circleProgress" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="time-display">
+                <div class="time-text" id="timeDisplay">00:00</div>
+                <div class="type-badge" id="typeBadge">Preparação</div>
+            </div>
+        </div>
+
+        <div class="exercise-title" id="exTitle">Pronto para iniciar?</div>
+        <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
+    </div>
+
+    <div class="up-next" id="upNextBox">
+        <div>
+            <div class="up-next-label">A seguir</div>
+            <div class="up-next-title" id="upNextTitle">Aquecimento Esteira</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-play" id="btnPlay" onclick="toggleTimer()">COMEÇAR TREINO</button>
+        <button class="btn-skip" onclick="nextStep()">PULAR</button>
+    </div>
+
+    <div class="global-progress">
+        <div class="global-fill" id="globalFill"></div>
+    </div>
+</div>
+
+<script>
+    // Gerador do plano de treino profissional (dividido por exercícios)
+    const workoutPlan = [
+        { title: "Aquecimento Esteira", duration: 180, desc: "Caminhada leve (4.5 a 5.0 km/h).", type: "Cardio", color: "var(--cardio)" },
+        { title: "Ritmo Constante", duration: 300, desc: "Caminhada acelerada (5.5 a 6.2 km/h, Inclinação 1-2%).", type: "Cardio", color: "var(--cardio)" },
+        { title: "Subida Moderada", duration: 120, desc: "Aumente a inclinação para 3-4% (5.0 a 5.5 km/h).", type: "Cardio", color: "var(--cardio)" },
+        { title: "Desaceleração", duration: 120, desc: "Reduza para 4.0 km/h e tire a inclinação.", type: "Cardio", color: "var(--cardio)" },
+        { title: "Transição para Força", duration: 40, desc: "Desça da esteira, pegue os halteres de 4kg e prepare-se.", type: "Transição", color: "var(--transicao)" }
+    ];
+
+    // Adiciona os 3 rounds de circuito dinamicamente
+    for(let i=1; i<=3; i++) {
+        workoutPlan.push({ title: `Agachamento (${i}/3)`, duration: 40, desc: "Halteres nas mãos. Desça o quadril jogando o peso nos calcanhares.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para a Remada", type: "Transição", color: "var(--transicao)" });
+
+        workoutPlan.push({ title: `Remada Curvada (${i}/3)`, duration: 40, desc: "Tronco inclinado, puxe os pesos em direção ao quadril.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para o Desenvolvimento", type: "Transição", color: "var(--transicao)" });
+
+        workoutPlan.push({ title: `Desenvolvimento (${i}/3)`, duration: 40, desc: "Eleve os halteres acima da cabeça sem curvar as costas.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: "Transição", duration: 15, desc: "Deite no chão para a Ponte", type: "Transição", color: "var(--transicao)" });
+
+        workoutPlan.push({ title: `Ponte p/ Glúteos (${i}/3)`, duration: 40, desc: "Pesos no quadril. Suba contraindo os glúteos.", type: "Força", color: "var(--forca)" });
+        workoutPlan.push({ title: "Transição", duration: 15, desc: "Continue no chão para o Abdominal", type: "Transição", color: "var(--transicao)" });
+
+        workoutPlan.push({ title: `Abdominal Infra (${i}/3)`, duration: 40, desc: "Mãos sob o quadril, eleve as pernas devagar.", type: "Força", color: "var(--forca)" });
+
+        if(i < 3) {
+            workoutPlan.push({ title: `Descanso Round ${i}`, duration: 50, desc: "Respire fundo e beba água.", type: "Descanso", color: "var(--descanso)" });
+        } else {
+            workoutPlan.push({ title: "Fim do Circuito", duration: 15, desc: "Guarde os halteres devagar.", type: "Transição", color: "var(--transicao)" });
+        }
+    }
+
+    workoutPlan.push({ title: "Volta à Calma", duration: 120, desc: "Caminhe pela sala, respire fundo e alongue.", type: "Relaxamento", color: "var(--cardio)" });
+
+    // Lógica do App
+    let currentStep = 0;
+    let timeLeft = workoutPlan[0].duration;
+    let timerInterval = null;
+    let isRunning = false;
+    let totalSecondsElapsed = 0;
+    const totalWorkoutSeconds = workoutPlan.reduce((acc, step) => acc + step.duration, 0);
+    const circleCircumference = 283; // 2 * pi * r (r=45)
+
+    // Sistema de Som
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(freq, type, duration) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function updateUI() {
+        const step = workoutPlan[currentStep];
+        const nextStepObj = workoutPlan[currentStep + 1];
+
+        if (!step) {
+            finishWorkout();
+            return;
+        }
+
+        // Textos
+        document.getElementById('exTitle').textContent = step.title;
+        document.getElementById('exDesc').textContent = step.desc;
+        document.getElementById('timeDisplay').textContent = formatTime(timeLeft);
+        document.getElementById('typeBadge').textContent = step.type;
+        document.getElementById('typeBadge').style.backgroundColor = step.color;
+        
+        // Cores Dinâmicas
+        document.getElementById('circleProgress').style.stroke = step.color;
+        document.getElementById('upNextBox').style.borderColor = nextStepObj ? nextStepObj.color : 'transparent';
+        
+        // Círculo de Progresso Local
+        const pct = timeLeft / step.duration;
+        const offset = circleCircumference - (pct * circleCircumference);
+        document.getElementById('circleProgress').style.strokeDashoffset = offset;
+
+        // Próximo Exercício
+        if (nextStepObj) {
+            document.getElementById('upNextTitle').textContent = nextStepObj.title;
+        } else {
+            document.getElementById('upNextBox').classList.add('hidden');
+        }
+
+        // Progresso Global
+        document.getElementById('globalTime').textContent = `${formatTime(totalSecondsElapsed)} / ${formatTime(totalWorkoutSeconds)}`;
+        const globalPct = (totalSecondsElapsed / totalWorkoutSeconds) * 100;
+        document.getElementById('globalFill').style.width = `${globalPct}%`;
+    }
+
+    function tick() {
+        if (timeLeft > 0) {
+            timeLeft--;
+            totalSecondsElapsed++;
+            
+            // Beeps nos últimos 3 segundos
+            if (timeLeft > 0 && timeLeft <= 3) {
+                playBeep(600, 'sine', 0.2); // Beep curto
+            } else if (timeLeft === 0) {
+                playBeep(900, 'triangle', 0.6); // Beep longo de troca
+                nextStep();
+                return; // Evita atualizar a UI com 0 antes de pular
+            }
+            updateUI();
+        }
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('btnPlay');
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        
+        if (!isRunning) {
+            timerInterval = setInterval(tick, 1000);
+            btn.textContent = "PAUSAR TREINO";
+            btn.style.backgroundColor = "#f59e0b"; // Amarelo pausar
+            isRunning = true;
+        } else {
+            clearInterval(timerInterval);
+            btn.textContent = "CONTINUAR";
+            btn.style.backgroundColor = "var(--primary)";
+            isRunning = false;
+        }
+    }
+
+    function nextStep() {
+        if (currentStep < workoutPlan.length - 1) {
+            // Avança para o próximo
+            totalSecondsElapsed += timeLeft; // Adiciona o tempo pulado ao global
+            currentStep++;
+            timeLeft = workoutPlan[currentStep].duration;
+            updateUI();
+        } else {
+            finishWorkout();
+        }
+    }
+
+    function finishWorkout() {
+        clearInterval(timerInterval);
+        document.getElementById('exTitle').textContent = "Treino Concluído! 🏆";
+        document.getElementById('exDesc').textContent = "Excelente trabalho, Alcino! Registre seu treino e descanse.";
+        document.getElementById('timeDisplay').textContent = "00:00";
+        document.getElementById('typeBadge').textContent = "FIM";
+        document.getElementById('typeBadge').style.backgroundColor = "var(--descanso)";
+        document.getElementById('circleProgress').style.strokeDashoffset = 0;
+        document.getElementById('circleProgress').style.stroke = "var(--descanso)";
+        document.getElementById('btnPlay').classList.add('hidden');
+        document.querySelector('.btn-skip').classList.add('hidden');
+        document.getElementById('upNextBox').classList.add('hidden');
+        document.getElementById('globalFill').style.width = `100%`;
+    }
+
+    // Inicialização
+    updateUI();
+</script>
+
+</body>
+</html>
