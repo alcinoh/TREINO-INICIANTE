@@ -55,13 +55,12 @@
         .exercise-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
         .exercise-desc { font-size: 0.9rem; color: var(--text-muted); min-height: 40px; }
 
-        /* NOVO: Player de Música Integrado */
+        /* Player de Música HTML5 */
         .music-player { background: rgba(0,0,0,0.3); margin: 0 20px 15px; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        .music-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; }
+        .music-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; text-align: center; line-height: 1.4; }
         .music-controls { display: flex; gap: 20px; align-items: center; }
         .music-btn { background: var(--bg-card); color: var(--text-main); border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
         .music-btn:active { transform: scale(0.9); background: var(--primary); color: #000; }
-        .yt-container { position: absolute; left: -9999px; /* Esconde o vídeo do YouTube da tela */ }
 
         .up-next { background: var(--bg-card); margin: 0 20px 15px; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary); transition: border-color 0.3s ease;}
         .up-next-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
@@ -101,15 +100,16 @@
         <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
     </div>
 
-    <!-- PLAYER DE MÚSICA -->
+    <!-- PLAYER DE MÚSICA NATIVO (WEB RADIO) -->
     <div class="music-player">
-        <div class="music-info" id="musicStatus">🎵 Trilha Sonora: Rock/Metal Mix</div>
+        <div class="music-info" id="musicStatus">📻 Heavy Metal Radio (Desligado)</div>
         <div class="music-controls">
             <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
-            <button class="music-btn" onclick="nextMusic()">⏭</button>
+            <button class="music-btn" onclick="nextStation()">⏭</button>
         </div>
+        <!-- Tag invisível de áudio -->
+        <audio id="rockRadio" preload="none"></audio>
     </div>
-    <div class="yt-container"><div id="youtube-player"></div></div>
 
     <div class="up-next" id="upNextBox">
         <div>
@@ -128,61 +128,57 @@
     </div>
 </div>
 
-<!-- API do YouTube -->
-<script src="https://www.youtube.com/iframe_api"></script>
-
 <script>
-    // --- INTEGRAÇÃO YOUTUBE (NOVO) ---
-    let ytPlayer;
+    // --- NOVO SISTEMA DE MÚSICA (RÁDIO HTML5) ---
+    const stations = [
+        { name: "Heavy Metal", url: "https://listen.181fm.com/181-hardrock_128k.mp3" },
+        { name: "Alt Rock", url: "https://listen.181fm.com/181-buzz_128k.mp3" },
+        { name: "Classic Rock", url: "https://listen.181fm.com/181-classic_128k.mp3" }
+    ];
+    let currentStationIndex = 0;
+    const radioPlayer = document.getElementById('rockRadio');
     let isMusicPlaying = false;
 
-    function onYouTubeIframeAPIReady() {
-        ytPlayer = new YT.Player('youtube-player', {
-            height: '10',
-            width: '10',
-            playerVars: {
-                // Toca uma playlist gerada automaticamente por busca das bandas!
-                'listType': 'search',
-                'list': 'Sepultura Raimundos Charlie Brown Jr Metallica Korn Offspring',
-                'controls': 0,
-                'rel': 0,
-                'autoplay': 0
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
-        });
-    }
+    // Inicializa a rádio na primeira estação
+    radioPlayer.src = stations[currentStationIndex].url;
 
-    function onPlayerReady(event) {
-        document.getElementById('musicStatus').textContent = "🎵 Playlist Pronta (Dê o Play)";
-    }
-
-    function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.PLAYING) {
-            isMusicPlaying = true;
-            document.getElementById('btnMusicPlay').textContent = "⏸";
-            document.getElementById('musicStatus').textContent = "🤘 Som na Caixa";
-        } else if (event.data == YT.PlayerState.PAUSED) {
+    function toggleMusic() {
+        if (isMusicPlaying) {
+            radioPlayer.pause();
             isMusicPlaying = false;
             document.getElementById('btnMusicPlay').textContent = "▶️";
-            document.getElementById('musicStatus').textContent = "🎵 Música Pausada";
+            document.getElementById('musicStatus').textContent = `📻 ${stations[currentStationIndex].name} (Pausado)`;
+        } else {
+            document.getElementById('musicStatus').textContent = "Carregando som...";
+            radioPlayer.play().then(() => {
+                isMusicPlaying = true;
+                document.getElementById('btnMusicPlay').textContent = "⏸";
+                document.getElementById('musicStatus').textContent = `🤘 Tocando: ${stations[currentStationIndex].name}`;
+            }).catch(e => {
+                document.getElementById('musicStatus').textContent = "⚠️ Erro na conexão da rádio";
+                console.error("Erro no player:", e);
+            });
         }
     }
 
-    function toggleMusic() {
-        if (!ytPlayer || !ytPlayer.playVideo) return;
-        if (isMusicPlaying) { ytPlayer.pauseVideo(); } 
-        else { ytPlayer.playVideo(); }
+    function nextStation() {
+        currentStationIndex++;
+        if (currentStationIndex >= stations.length) currentStationIndex = 0;
+        
+        radioPlayer.src = stations[currentStationIndex].url;
+        document.getElementById('musicStatus').textContent = `Trocando para ${stations[currentStationIndex].name}...`;
+        
+        if (isMusicPlaying) {
+            radioPlayer.play().then(() => {
+                document.getElementById('musicStatus').textContent = `🤘 Tocando: ${stations[currentStationIndex].name}`;
+            });
+        } else {
+            document.getElementById('musicStatus').textContent = `📻 ${stations[currentStationIndex].name} (Pronto)`;
+        }
     }
 
-    function nextMusic() {
-        if (!ytPlayer || !ytPlayer.nextVideo) return;
-        ytPlayer.nextVideo();
-    }
 
-    // --- LÓGICA DO TREINO (MANTIDA) ---
+    // --- LÓGICA DO TREINO ---
     const workoutPlan = [
         { title: "Aquecimento Esteira", duration: 180, desc: "Caminhada leve (4.5 a 5.0 km/h).", type: "Cardio", color: "var(--cardio)" },
         { title: "Ritmo Constante", duration: 300, desc: "Caminhada acelerada (5.5 a 6.2 km/h, Inclinação 1-2%).", type: "Cardio", color: "var(--cardio)" },
@@ -314,13 +310,13 @@
             frase = "Treino quase concluído. Vamos para a volta à calma. Caminhe devagar e alongue.";
         }
         
-        // Abaixa a música levemente enquanto a voz fala (se suportado/possível)
-        if (ytPlayer && isMusicPlaying) ytPlayer.setVolume(30);
+        // Abaixa o volume da música para a voz falar
+        if (isMusicPlaying) radioPlayer.volume = 0.15;
         speak(frase);
         
-        // Tenta voltar o volume após 4 segundos
+        // Volta o volume normal após 4 segundos
         setTimeout(() => {
-            if (ytPlayer && isMusicPlaying) ytPlayer.setVolume(100);
+            if (isMusicPlaying) radioPlayer.volume = 1.0;
         }, 4000);
     }
 
@@ -372,7 +368,11 @@
         document.getElementById('globalFill').style.width = `100%`;
         
         speak("Parabéns! Você concluiu o seu treino de trinta minutos. Excelente trabalho!");
-        if (ytPlayer) ytPlayer.pauseVideo();
+        if (isMusicPlaying) {
+            radioPlayer.pause();
+            document.getElementById('btnMusicPlay').textContent = "▶️";
+            document.getElementById('musicStatus').textContent = "Treino Finalizado";
+        }
     }
 
     updateUI();
