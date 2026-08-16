@@ -249,16 +249,16 @@ async function gerarTreinoComIA() {
         localStorage.setItem('gemini_api_key', apiKey);
         document.getElementById('apiContainer').style.display = 'none';
 
-        status.textContent = "⏳ Consultando o Personal Trainer IA...";
+        status.textContent = "⏳ Consultando o Personal Trainer...";
         status.style.color = "var(--primary)";
         btn.disabled = true; btn.style.opacity = "0.5";
 
-        // MUDANÇA: v1beta e modelo gemini-1.5-pro (mais estável)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+        // MUDANÇA: URL padrão e modelo gemini-pro (universal)
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
         
         const payload = {
             "contents": [{
-                "parts": [{"text": `Atue como um Personal Trainer. Baseado nestes dados: "${prompt}". Retorne APENAS um array JSON válido. Estrutura de cada objeto: {"title": "Nome do Exercício", "duration": segundos_como_numero, "desc": "Instrução curta", "type": "Força ou Cardio ou Descanso", "color": "var(--forca) ou var(--cardio) ou var(--descanso)", "spoken": "Nome para a voz falar"}. Nunca use crases ou markdown na resposta, apenas inicie com [ e termine com ].`}]
+                "parts": [{"text": `Atue como um Personal Trainer especialista. Baseado nestes dados: "${prompt}". Retorne APENAS um array JSON puro (ex: [{"title": "...", "duration": 30, "desc": "...", "type": "Força", "color": "var(--forca)", "spoken": "..."}]). Não coloque texto, crases ou explicações, apenas o array.`}]
             }]
         };
 
@@ -266,14 +266,15 @@ async function gerarTreinoComIA() {
             const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
             const data = await response.json();
             
-            if(!response.ok) throw new Error(data.error?.message || "Erro de conexão com o Google.");
+            if(!response.ok) throw new Error(data.error?.message || "Erro de conexão.");
 
             let jsonText = data.candidates[0].content.parts[0].text;
+            
+            // Limpeza mais agressiva para garantir o JSON
+            jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
             const firstBracket = jsonText.indexOf('[');
             const lastBracket = jsonText.lastIndexOf(']');
-            if(firstBracket !== -1 && lastBracket !== -1) {
-                jsonText = jsonText.substring(firstBracket, lastBracket + 1);
-            }
+            jsonText = jsonText.substring(firstBracket, lastBracket + 1);
             
             const novoTreino = JSON.parse(jsonText);
             localStorage.setItem('treino_ia_alcino', JSON.stringify(novoTreino));
@@ -287,7 +288,6 @@ async function gerarTreinoComIA() {
             btn.disabled = false; btn.style.opacity = "1";
         }
     }
-
     // --- 6. MOTOR DO TREINO IA (EXECUÇÃO) ---
     let iaPlan = [];
     let iaStep = 0;
