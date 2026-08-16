@@ -259,43 +259,47 @@ function resetarChave() {
         btn.disabled = true; btn.style.opacity = "0.5";
 
         try {
-            // PASSO 1: Auto-Descobrimento - Pergunta ao Google quais modelos sua chave pode usar
-            status.innerHTML = "⏳ Verificando permissões da sua chave no Google...";
+            status.innerHTML = "⏳ Conectando ao Personal Trainer IA (Interactions API)...";
             status.style.color = "var(--primary)";
             
-            const modelsResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-            const modelsData = await modelsResponse.json();
+            // Nova URL da Interactions API
+            const url = `https://generativelanguage.googleapis.com/v1beta/interactions`;
             
-            if(modelsData.error) throw new Error("A chave API é inválida ou não tem permissão para usar o Gemini.");
-            
-            // Filtra os modelos que a sua chave tem acesso e que suportam gerar texto
-            const availableModels = modelsData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent") && m.name.includes("gemini"));
-            
-            if(availableModels.length === 0) throw new Error("Sua chave não liberou nenhum modelo Gemini.");
+            const instrucao_sistema = `Atue como um Personal Trainer especialista. Retorne APENAS um array JSON válido. Estrutura de cada objeto: {"title": "Nome do Exercício", "duration": segundos_como_numero, "desc": "Instrução curta", "type": "Força ou Cardio ou Descanso", "color": "var(--forca) ou var(--cardio) ou var(--descanso)", "spoken": "Nome para a voz falar"}. Nunca use crases ou markdown na resposta, apenas o JSON.`;
 
-            // Tenta usar o 1.5-flash (mais rápido), ou pega o primeiro que o Google autorizou
-            let targetModel = availableModels.find(m => m.name === "models/gemini-1.5-flash") || availableModels[0];
-            let modelName = targetModel.name; // Ex: "models/gemini-1.0-pro"
-
-            // PASSO 2: Gera o treino no modelo exato que o Google autorizou
-            status.innerHTML = `⏳ Modelo <b>${modelName.replace('models/', '')}</b> conectado! Gerando treino...`;
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
-            
             const payload = {
-                "contents": [{
-                    "parts": [{"text": `Atue como um Personal Trainer especialista. Crie um treino baseado nestes dados: "${prompt}". Retorne APENAS um array JSON puro. Exemplo da estrutura que eu preciso: [{"title": "Agachamento", "duration": 40, "desc": "Mantenha a postura", "type": "Força", "color": "var(--forca)", "spoken": "Agachamento livre"}]. Não escreva mais absolutamente nada além do JSON.`}]
-                }]
+                "model": "gemini-3.7-flash",
+                "system_instruction": instrucao_sistema,
+                "input": prompt
             };
 
-            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            const response = await fetch(url, { 
+                method: 'POST', 
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': apiKey
+                }, 
+                body: JSON.stringify(payload) 
+            });
+            
             const data = await response.json();
             
             if(!response.ok) throw new Error(data.error?.message || "Erro durante a criação do treino.");
 
-            let jsonText = data.candidates[0].content.parts[0].text;
+            // A nova API retorna os passos na chave 'steps'. Precisamos encontrar o 'model_output'
+            let jsonText = "";
+            const steps = data.steps || [];
+            for (const step of steps) {
+                if (step.type === "model_output" && step.content && step.content.length > 0) {
+                    // Assume que a resposta de texto é a primeira parte
+                    jsonText = step.content[0].text;
+                    break;
+                }
+            }
+
+            if (!jsonText) throw new Error("A IA não retornou conteúdo válido.");
             
-            // Limpa o texto da IA para não quebrar o aplicativo
+            // Limpa o texto da IA para garantir que seja um JSON válido
             jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const firstBracket = jsonText.indexOf('[');
             const lastBracket = jsonText.lastIndexOf(']');
