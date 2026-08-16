@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | App V5.0</title>
+    <title>Treino Alcino | App V5.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -16,10 +16,11 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #000; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
-        #app-container { width: 100%; max-width: 420px; background-color: var(--bg-dark); min-height: 100vh; display: flex; flex-direction: column; color: var(--text-main); position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); overflow-x: hidden; }
         
-        .screen { display: none; flex-direction: column; flex-grow: 1; padding-bottom: 90px; overflow-y: auto;} 
+        /* CORREÇÃO DE ROLAGEM APLICADA AQUI */
+        body { background-color: #000; display: flex; justify-content: center; height: 100dvh; margin: 0; overflow: hidden; }
+        #app-container { width: 100%; max-width: 420px; background-color: var(--bg-dark); height: 100%; display: flex; flex-direction: column; color: var(--text-main); position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); overflow: hidden; }
+        .screen { display: none; flex-direction: column; flex: 1; overflow-y: auto; padding-bottom: 100px; } 
         .screen.active { display: flex; }
 
         header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;}
@@ -41,7 +42,7 @@
         .btn-play { background-color: var(--primary); color: #000; border: none; border-radius: 12px; font-weight: 700; padding: 15px; width: 100%; font-size: 1.1rem; cursor: pointer;}
         .hidden { display: none !important; }
 
-        .music-player { position: fixed; bottom: 0; width: 100%; max-width: 420px; background: #000; border-top: 1px solid #334155; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 1000; }
+        .music-player { position: absolute; bottom: 0; width: 100%; background: #000; border-top: 1px solid #334155; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 1000; }
         .music-info { font-size: 0.75rem; color: var(--text-muted); width: 60%; font-weight: 600;}
         .music-controls { display: flex; gap: 10px; }
         .music-btn { background: var(--bg-card); color: var(--text-main); border: none; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;}
@@ -289,7 +290,6 @@
         btn.disabled = true; btn.style.opacity = "0.5"; status.innerHTML = "⏳ Montando seu treino..."; status.style.color = "var(--primary)";
 
         try {
-            // Usando a rota mais rápida, estável e com formato JSON nativo obrigatório
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const payload = {
                 "contents": [{"parts": [{"text": "Crie um treino para: " + prompt}]}],
@@ -303,13 +303,12 @@
             
             const novoTreino = JSON.parse(data.candidates[0].content.parts[0].text);
             
-            // Salvando na Galeria
             let galeria = JSON.parse(localStorage.getItem('galeria_treinos_alcino') || '[]');
             const dataAtual = new Date().toLocaleDateString('pt-BR');
-            const tituloResumo = prompt.substring(0, 25) + "..."; // Cria um título curto baseado no que vc digitou
+            const tituloResumo = prompt.substring(0, 25) + "..."; 
             
             galeria.unshift({ title: `Treino IA (${tituloResumo})`, date: dataAtual, plan: novoTreino });
-            if(galeria.length > 10) galeria.pop(); // Mantém apenas os 10 últimos
+            if(galeria.length > 10) galeria.pop(); 
             localStorage.setItem('galeria_treinos_alcino', JSON.stringify(galeria));
             
             alert("✅ Treino montado e salvo na sua Galeria!"); abrirGaleria();
@@ -322,7 +321,6 @@
 
     function carregarTreinoIA(plano) {
         iaPlan = plano; iaStep = 0; iaTimeLeft = iaPlan[0].duration; iaTotalDuration = iaPlan.reduce((acc, step) => acc + step.duration, 0);
-        // Reseta tela
         clearInterval(iaInterval); iaRunning = false; document.getElementById('iaBtnPlay').textContent = "▶ COMEÇAR"; document.getElementById('iaBtnPlay').style.backgroundColor = "var(--primary)";
         atualizarTelaIA();
     }
@@ -356,7 +354,7 @@
         } else { clearInterval(iaInterval); iaRunning = false; btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor = "var(--primary)"; }
     }
 
-    // --- 7. TREINO INICIANTE E CORRIDA LIVRE (MANUTENÇÃO) ---
+    // --- 7. TREINO INICIANTE E CORRIDA LIVRE ---
     let t1Timer, t1Left = 1800, t1Run = false;
     function toggleTimer1() { const btn = document.getElementById('btnPlay1'); if(!t1Run) { speakIntelligent("Iniciante iniciado."); t1Run = true; btn.textContent = "⏸ PAUSAR"; btn.style.backgroundColor="var(--warning)"; t1Timer = setInterval(()=>{ if(t1Left>0){ t1Left--; document.getElementById('timeDisplay1').textContent=formatTime(t1Left); document.getElementById('circleProgress1').style.strokeDashoffset = 283 - ((t1Left / 1800) * 283); }else{ clearInterval(t1Timer); t1Run = false; registrarTreino('Iniciante 1', 30); speakIntelligent("Treino concluído."); abrirDashboard(); } },1000); } else { t1Run = false; clearInterval(t1Timer); btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor="var(--primary)";} }
 
