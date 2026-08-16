@@ -1,51 +1,84 @@
-<!-- Trecho focado no Menu e no Assistente. Mantenha os estilos anteriores e substitua as telas abaixo -->
-
-<!-- TELA MENU ATUALIZADA -->
-<div id="screen-menu" class="screen active">
-    <div class="profile-section">
-        <div class="avatar">A</div>
-        <h2>Olá, Alcino!</h2>
-        <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
-    </div>
-    <div class="menu-grid" id="menuList">
-        <div class="menu-card" onclick="openScreen('screen-iniciante')">
-            <div class="menu-icon">💪</div>
-            <div><h2>Iniciante 1</h2><p>Circuito Full Body.</p></div>
-        </div>
-        <div class="menu-card" onclick="openScreen('screen-corrida')">
-            <div class="menu-icon">🏃‍♂️</div>
-            <div><h2>Corrida Livre</h2><p>GPS e Mapa.</p></div>
-        </div>
-        <!-- Botão Criar Treino -->
-        <div class="menu-card" onclick="openScreen('screen-assistant')" style="border: 2px dashed var(--primary);">
-            <div class="menu-icon">🤖</div>
-            <div><h2>Assistente IA</h2><p>Criar novo treino personalizado.</p></div>
-        </div>
-    </div>
-</div>
-
-<!-- TELA ASSISTENTE -->
+<!-- TELA ASSISTENTE ATUALIZADA -->
 <div id="screen-assistant" class="screen">
-    <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Configurar Treino</h1></header>
+    <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Personal Trainer IA</h1></header>
+    
     <div style="padding: 20px;">
-        <textarea id="aiForm" style="width:100%; height:300px; background:var(--bg-card); color:white; border-radius:10px; padding:10px; border:none;" 
-        placeholder="Copie e preencha:
-Nome:
-Idade:
-Peso/Altura:
-Local (Casa/Academia/Ar livre):
-Equipamentos:
-Objetivo:
-Tempo disponível:
-Restrições:"></textarea>
-        <button class="btn-play" style="margin-top:20px;" onclick="copyFormData()">📋 COPIAR DADOS P/ IA</button>
+        <!-- Container da API Key (Some depois de salva) -->
+        <div id="apiContainer" style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+            <p style="font-size: 0.8rem; color: var(--warning); margin-bottom: 10px;">🔑 Primeira vez aqui? Cole sua API Key gratuita do Google Gemini para habilitar a IA. Ela ficará salva com segurança apenas neste aparelho.</p>
+            <input type="text" id="apiKey" placeholder="Cole sua API Key aqui..." style="width:100%; padding:12px; border-radius:8px; border:none; background: #fff; color: #000;">
+        </div>
+        
+        <p style="font-size: 0.9rem; margin-bottom: 10px; font-weight: 600;">Como você quer treinar hoje?</p>
+        <textarea id="aiForm" style="width:100%; height:150px; background:var(--bg-card); color:white; border-radius:10px; padding:15px; border:1px solid rgba(255,255,255,0.1); margin-bottom:15px;" 
+        placeholder="Ex: Sou homem, tenho 95kg e 1,85m. Quero treinar em casa, tenho apenas halteres de 4kg e uma esteira. Foco em emagrecimento e tenho 30 minutos."></textarea>
+        
+        <button class="btn-play" id="btnGerarTreino" onclick="gerarTreinoComIA()">🤖 CRIAR MEU TREINO</button>
+        <div id="statusIA" style="margin-top:15px; font-size: 0.9rem; text-align: center; color: var(--primary); font-weight: 600;"></div>
     </div>
 </div>
 
 <script>
-    function copyFormData() {
-        const text = document.getElementById('aiForm').value;
-        navigator.clipboard.writeText(text);
-        alert("Dados copiados! Agora cole aqui na nossa conversa para eu montar seu treino.");
+    // Verifica se a chave já está salva quando a tela carrega
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedKey = localStorage.getItem('gemini_api_key');
+        if(savedKey) {
+            document.getElementById('apiKey').value = savedKey;
+            document.getElementById('apiContainer').style.display = 'none'; // Esconde a caixa de chave
+        }
+    });
+
+    async function gerarTreinoComIA() {
+        const status = document.getElementById('statusIA');
+        const btn = document.getElementById('btnGerarTreino');
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const prompt = document.getElementById('aiForm').value.trim();
+
+        if(!apiKey) { alert("Você precisa inserir sua API Key do Google."); return; }
+        if(!prompt) { alert("Descreva como você quer o seu treino."); return; }
+        
+        // Salva a chave para as próximas vezes
+        localStorage.setItem('gemini_api_key', apiKey);
+        document.getElementById('apiContainer').style.display = 'none';
+
+        status.textContent = "⏳ Analisando seu perfil e montando o treino...";
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
+        const payload = {
+            "contents": [{
+                "parts": [{ "text": `Atue como um Personal Trainer especialista. Crie um treino baseado nestes dados do aluno: "${prompt}". Retorne APENAS um array JSON puro de objetos com a estrutura exata: { "title": "Nome do Exercício", "duration": tempo_em_segundos_como_numero, "desc": "Como executar", "type": "Força ou Cardio ou Descanso ou Transição", "color": "var(--forca) ou var(--cardio) ou var(--descanso) ou var(--transicao)", "spoken": "Nome curto para a voz falar" }. Não adicione markdown, crases ou texto extra, apenas o [ ... ] JSON.` }]
+            }]
+        };
+
+        try {
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            const data = await response.json();
+            
+            if(data.error) { throw new Error(data.error.message); }
+
+            let jsonText = data.candidates[0].content.parts[0].text;
+            // Limpa formatação markdown caso a IA envie
+            jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim(); 
+            
+            const novoTreino = JSON.parse(jsonText);
+            
+            // Salva o treino recém criado
+            localStorage.setItem('treino_ia_alcino', JSON.stringify(novoTreino));
+            
+            status.textContent = "✅ Treino criado com sucesso!";
+            alert("Seu treino foi montado! Vamos adicioná-lo ao menu.");
+            
+            // Recarrega o app para atualizar o menu com o novo treino
+            location.reload(); 
+            
+        } catch(e) {
+            status.textContent = "⚠️ Erro ao gerar treino. Verifique sua API Key ou tente novamente.";
+            console.error("Erro IA:", e);
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        }
     }
 </script>
