@@ -237,7 +237,14 @@
         // Garante que o campo apareça
     }
 
-async function gerarTreinoComIA() {
+function resetarChave() {
+        localStorage.removeItem('gemini_api_key');
+        document.getElementById('apiContainer').style.display = 'block';
+        document.getElementById('apiKey').value = '';
+        document.getElementById('statusIA').innerHTML = '';
+    }
+
+    async function gerarTreinoComIA() {
         const status = document.getElementById('statusIA');
         const btn = document.getElementById('btnGerarTreino');
         const apiKey = document.getElementById('apiKey').value.trim();
@@ -249,31 +256,52 @@ async function gerarTreinoComIA() {
         localStorage.setItem('gemini_api_key', apiKey);
         document.getElementById('apiContainer').style.display = 'none';
 
-        status.textContent = "⏳ Consultando o Personal Trainer...";
-        status.style.color = "var(--primary)";
         btn.disabled = true; btn.style.opacity = "0.5";
 
-        // MUDANÇA: URL padrão e modelo gemini-pro (universal)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-        
-        const payload = {
-            "contents": [{
-                "parts": [{"text": `Atue como um Personal Trainer especialista. Baseado nestes dados: "${prompt}". Retorne APENAS um array JSON puro (ex: [{"title": "...", "duration": 30, "desc": "...", "type": "Força", "color": "var(--forca)", "spoken": "..."}]). Não coloque texto, crases ou explicações, apenas o array.`}]
-            }]
-        };
-
         try {
+            // PASSO 1: Auto-Descobrimento - Pergunta ao Google quais modelos sua chave pode usar
+            status.innerHTML = "⏳ Verificando permissões da sua chave no Google...";
+            status.style.color = "var(--primary)";
+            
+            const modelsResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+            const modelsData = await modelsResponse.json();
+            
+            if(modelsData.error) throw new Error("A chave API é inválida ou não tem permissão para usar o Gemini.");
+            
+            // Filtra os modelos que a sua chave tem acesso e que suportam gerar texto
+            const availableModels = modelsData.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent") && m.name.includes("gemini"));
+            
+            if(availableModels.length === 0) throw new Error("Sua chave não liberou nenhum modelo Gemini.");
+
+            // Tenta usar o 1.5-flash (mais rápido), ou pega o primeiro que o Google autorizou
+            let targetModel = availableModels.find(m => m.name === "models/gemini-1.5-flash") || availableModels[0];
+            let modelName = targetModel.name; // Ex: "models/gemini-1.0-pro"
+
+            // PASSO 2: Gera o treino no modelo exato que o Google autorizou
+            status.innerHTML = `⏳ Modelo <b>${modelName.replace('models/', '')}</b> conectado! Gerando treino...`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                "contents": [{
+                    "parts": [{"text": `Atue como um Personal Trainer especialista. Crie um treino baseado nestes dados: "${prompt}". Retorne APENAS um array JSON puro. Exemplo da estrutura que eu preciso: [{"title": "Agachamento", "duration": 40, "desc": "Mantenha a postura", "type": "Força", "color": "var(--forca)", "spoken": "Agachamento livre"}]. Não escreva mais absolutamente nada além do JSON.`}]
+                }]
+            };
+
             const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
             const data = await response.json();
             
-            if(!response.ok) throw new Error(data.error?.message || "Erro de conexão.");
+            if(!response.ok) throw new Error(data.error?.message || "Erro durante a criação do treino.");
 
             let jsonText = data.candidates[0].content.parts[0].text;
             
-            // Limpeza mais agressiva para garantir o JSON
-            jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
+            // Limpa o texto da IA para não quebrar o aplicativo
+            jsonText = jsonText.replace(/```json/gi, '').replace(/```/g, '').trim();
             const firstBracket = jsonText.indexOf('[');
             const lastBracket = jsonText.lastIndexOf(']');
+            
+            if(firstBracket === -1 || lastBracket === -1) throw new Error("A IA não retornou os dados no formato esperado.");
+            
             jsonText = jsonText.substring(firstBracket, lastBracket + 1);
             
             const novoTreino = JSON.parse(jsonText);
@@ -283,7 +311,7 @@ async function gerarTreinoComIA() {
             location.reload(); 
         } catch(e) {
             console.error("Erro IA:", e);
-            status.innerHTML = `⚠️ Falha: ${e.message}<br><button onclick="resetarChave()" class="btn-reset">Trocar API Key</button>`;
+            status.innerHTML = `⚠️ Erro: ${e.message}<br><button onclick="resetarChave()" class="btn-reset" style="margin-top:10px;">Trocar API Key</button>`;
             status.style.color = "var(--forca)";
             btn.disabled = false; btn.style.opacity = "1";
         }
