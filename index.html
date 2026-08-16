@@ -1,84 +1,374 @@
-<!-- TELA ASSISTENTE ATUALIZADA -->
-<div id="screen-assistant" class="screen">
-    <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Personal Trainer IA</h1></header>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Treino Alcino | App V3.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <style>
+        :root {
+            --bg-dark: #0f172a; --bg-card: #1e293b; --primary: #38bdf8;
+            --cardio: #0ea5e9; --forca: #ef4444; --descanso: #10b981;
+            --transicao: #64748b; --text-main: #f8fafc; --text-muted: #94a3b8;
+            --warning: #f59e0b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #000; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
+        #app-container { width: 100%; max-width: 420px; background-color: var(--bg-dark); min-height: 100vh; display: flex; flex-direction: column; color: var(--text-main); position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); overflow-x: hidden; }
+        
+        .screen { display: none; flex-direction: column; flex-grow: 1; padding-bottom: 90px; overflow-y: auto;} 
+        .screen.active { display: flex; }
+
+        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;}
+        .btn-back { position: absolute; left: 15px; top: 20px; background: none; border: none; color: var(--primary); font-size: 1.5rem; cursor: pointer; }
+        h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
+        .streak-badge { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+        .menu-grid { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .menu-card { background: var(--bg-card); border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.1s;}
+        .menu-card:active { transform: scale(0.98); border-color: var(--primary); }
+        .menu-icon { font-size: 2rem; }
+        .profile-section { text-align: center; padding: 30px 20px 10px; }
+        .avatar { width: 70px; height: 70px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; margin: 0 auto 10px; color: #000; font-weight: 700;}
+
+        .timer-section { padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .timer-circle { position: relative; width: 220px; height: 220px; margin: 0 auto 20px; }
+        .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .time-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 700; }
+        .btn-play { background-color: var(--primary); color: #000; border: none; border-radius: 12px; font-weight: 700; padding: 15px; width: 100%; font-size: 1.1rem; cursor: pointer;}
+        .hidden { display: none !important; }
+
+        .music-player { position: fixed; bottom: 0; width: 100%; max-width: 420px; background: #000; border-top: 1px solid #334155; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 1000; }
+        .music-info { font-size: 0.75rem; color: var(--text-muted); width: 60%; font-weight: 600;}
+        .music-controls { display: flex; gap: 10px; }
+        .music-btn { background: var(--bg-card); color: var(--text-main); border: none; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer;}
+
+        #map { width: 100%; height: 250px; background: #334155; margin-top: 10px; border-radius: 15px; }
+        .gps-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+
+        .input-ia { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #fff; color: #000; font-size: 1rem; margin-bottom: 15px; font-family: inherit;}
+        .textarea-ia { width: 100%; height: 150px; background: #fff; color: #000; border-radius: 10px; padding: 15px; border: none; font-size: 1rem; margin-bottom: 15px; font-family: inherit; resize: none;}
+    </style>
+</head>
+<body>
+
+<div id="app-container">
     
-    <div style="padding: 20px;">
-        <!-- Container da API Key (Some depois de salva) -->
-        <div id="apiContainer" style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-            <p style="font-size: 0.8rem; color: var(--warning); margin-bottom: 10px;">🔑 Primeira vez aqui? Cole sua API Key gratuita do Google Gemini para habilitar a IA. Ela ficará salva com segurança apenas neste aparelho.</p>
-            <input type="text" id="apiKey" placeholder="Cole sua API Key aqui..." style="width:100%; padding:12px; border-radius:8px; border:none; background: #fff; color: #000;">
+    <!-- TELA MENU -->
+    <div id="screen-menu" class="screen active">
+        <div class="profile-section">
+            <div class="avatar">A</div>
+            <h2>Olá, Alcino!</h2>
+            <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
         </div>
+        <div class="menu-grid" id="menuList">
+            <div class="menu-card" onclick="openScreen('screen-iniciante')">
+                <div class="menu-icon">💪</div>
+                <div><h2 style="font-size: 1.1rem;">Iniciante 1</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Circuito Full Body 30 min.</p></div>
+            </div>
+            <div class="menu-card" onclick="openScreen('screen-corrida')">
+                <div class="menu-icon">🏃‍♂️</div>
+                <div><h2 style="font-size: 1.1rem;">Corrida Livre</h2><p style="font-size: 0.8rem; color: var(--text-muted);">GPS, Mapa e Ritmo.</p></div>
+            </div>
+            <!-- Botão da IA -->
+            <div class="menu-card" onclick="openScreen('screen-assistant')" style="border: 2px dashed var(--primary); background: rgba(56, 189, 248, 0.05);">
+                <div class="menu-icon">🤖</div>
+                <div><h2 style="font-size: 1.1rem; color: var(--primary);">Assistente IA</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Criar treino sob medida.</p></div>
+            </div>
+            <!-- Botão do Treino Personalizado (Escondido até gerar) -->
+            <div id="btnTreinoCustom" class="menu-card hidden" onclick="openScreen('screen-treino-ia')" style="border-left: 4px solid var(--warning);">
+                <div class="menu-icon">⚡</div>
+                <div><h2 style="font-size: 1.1rem; color: var(--warning);">Meu Treino IA</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Seu treino personalizado.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA ASSISTENTE IA (CORRIGIDA) -->
+    <div id="screen-assistant" class="screen">
+        <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Personal Trainer IA</h1></header>
         
-        <p style="font-size: 0.9rem; margin-bottom: 10px; font-weight: 600;">Como você quer treinar hoje?</p>
-        <textarea id="aiForm" style="width:100%; height:150px; background:var(--bg-card); color:white; border-radius:10px; padding:15px; border:1px solid rgba(255,255,255,0.1); margin-bottom:15px;" 
-        placeholder="Ex: Sou homem, tenho 95kg e 1,85m. Quero treinar em casa, tenho apenas halteres de 4kg e uma esteira. Foco em emagrecimento e tenho 30 minutos."></textarea>
-        
-        <button class="btn-play" id="btnGerarTreino" onclick="gerarTreinoComIA()">🤖 CRIAR MEU TREINO</button>
-        <div id="statusIA" style="margin-top:15px; font-size: 0.9rem; text-align: center; color: var(--primary); font-weight: 600;"></div>
+        <div style="padding: 20px;">
+            <div id="apiContainer" style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <p style="font-size: 0.8rem; color: var(--warning); margin-bottom: 10px;">🔑 Primeira vez? Cole sua API Key do Google Gemini aqui (Ficará salva no seu celular).</p>
+                <input type="text" id="apiKey" class="input-ia" placeholder="Cole a chave (AIzaSy...)">
+            </div>
+            
+            <p style="font-size: 0.95rem; margin-bottom: 10px; font-weight: 600;">Descreva como quer treinar hoje:</p>
+            <textarea id="aiForm" class="textarea-ia" placeholder="Ex: Sou o Alcino, tenho 1,85m e 95kg. Quero um treino de 15 minutos em casa. Tenho 2 halteres de 4kg e esteira. Foco em braços e cardio."></textarea>
+            
+            <button class="btn-play" id="btnGerarTreino" onclick="gerarTreinoComIA()">🤖 MONTAR MEU TREINO</button>
+            <div id="statusIA" style="margin-top:15px; font-size: 0.9rem; text-align: center; color: var(--primary); font-weight: 600;"></div>
+        </div>
+    </div>
+
+    <!-- TELA EXECUÇÃO DO TREINO IA -->
+    <div id="screen-treino-ia" class="screen">
+        <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1 id="iaHeaderTitle">Meu Treino IA</h1></header>
+        <div class="timer-section">
+            <div class="timer-circle">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" stroke="#334155" stroke-width="8" fill="none"/>
+                    <circle id="iaCircleProgress" cx="50" cy="50" r="45" stroke="var(--primary)" stroke-width="8" fill="none" stroke-dasharray="283" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s ease;"/>
+                </svg>
+                <div class="time-display" id="iaTimeDisplay">00:00</div>
+            </div>
+            <div id="iaExTitle" style="font-size:1.5rem; font-weight:700; color: var(--warning);">Pronto para iniciar?</div>
+            <div id="iaExDesc" style="color:var(--text-muted); margin-top:5px; min-height: 40px;">Seu treino sob medida vai começar.</div>
+        </div>
+        <div style="padding: 20px; margin-top: auto;"><button class="btn-play" id="iaBtnPlay" onclick="toggleTreinoIA()">▶ COMEÇAR</button></div>
+    </div>
+
+    <!-- TELA INICIANTE 1 -->
+    <div id="screen-iniciante" class="screen">
+        <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Iniciante 1</h1></header>
+        <div class="timer-section">
+            <div class="timer-circle"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke="#334155" stroke-width="8" fill="none"/><circle id="circleProgress1" cx="50" cy="50" r="45" stroke="#38bdf8" stroke-width="8" fill="none" stroke-dasharray="283" stroke-dashoffset="0"/></svg><div class="time-display" id="timeDisplay1">30:00</div></div>
+            <div style="font-size:1.5rem; font-weight:700;">Circuito Full Body</div>
+            <div style="color:var(--text-muted); margin-top:10px;">Suba na esteira.</div>
+        </div>
+        <div style="padding: 20px; margin-top: auto;"><button class="btn-play" id="btnPlay1" onclick="toggleTimer1()">▶ COMEÇAR</button></div>
+    </div>
+
+    <!-- TELA CORRIDA LIVRE -->
+    <div id="screen-corrida" class="screen">
+        <header><button class="btn-back" onclick="stopRunAndExit()">❮</button><h1>Corrida</h1></header>
+        <div style="padding: 20px; text-align: center;">
+            <div class="gps-value" id="runTime" style="font-size: 2.5rem;">00:00:00</div>
+            <div style="display:flex; justify-content:space-around; margin-top:10px;">
+                <div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Distância</div><div class="gps-value"><span id="runDist">0.00</span> km</div></div>
+                <div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Velocidade</div><div class="gps-value"><span id="runSpeed">0.0</span> km/h</div></div>
+            </div>
+            <div id="map"></div>
+            <button class="btn-play" style="margin-top:20px;" id="btnRunAction" onclick="toggleRun()">▶ INICIAR ATIVIDADE</button>
+        </div>
+    </div>
+
+    <!-- PLAYER GLOBAL (FIXO NO RODAPÉ) -->
+    <div class="music-player">
+        <div class="music-info" id="musicStatus">📻 Rock / Gym Music</div>
+        <div class="music-controls">
+            <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
+            <button class="music-btn" onclick="nextStation()">⏭</button>
+        </div>
+        <audio id="rockRadio" preload="none"></audio>
     </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
-    // Verifica se a chave já está salva quando a tela carrega
-    document.addEventListener("DOMContentLoaded", () => {
-        const savedKey = localStorage.getItem('gemini_api_key');
-        if(savedKey) {
-            document.getElementById('apiKey').value = savedKey;
-            document.getElementById('apiContainer').style.display = 'none'; // Esconde a caixa de chave
-        }
-    });
+    // --- 1. CONFIGURAÇÕES INICIAIS ---
+    let treinosConcluidos = localStorage.getItem('treinos_alcino') || 0;
+    document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
 
+    // Verifica se tem API Key salva
+    const savedKey = localStorage.getItem('gemini_api_key');
+    if(savedKey) {
+        document.getElementById('apiKey').value = savedKey;
+        document.getElementById('apiContainer').style.display = 'none';
+    }
+
+    // Verifica se tem Treino IA salvo
+    let treinoIAData = localStorage.getItem('treino_ia_alcino');
+    if(treinoIAData) {
+        document.getElementById('btnTreinoCustom').classList.remove('hidden');
+    }
+
+    // --- 2. NAVEGAÇÃO DE TELAS ---
+    function openScreen(id) { 
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+        document.getElementById(id).classList.add('active'); 
+        if(id === 'screen-corrida' && map) setTimeout(() => map.invalidateSize(), 200); 
+    }
+
+    // --- 3. SISTEMA DE VOZ E BIPS INTELIGENTE ---
+    const synth = window.speechSynthesis;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function speakIntelligent(texto) { 
+        if(synth.speaking) synth.cancel(); 
+        if(texto !== '') {
+            if(isMusicPlaying) radioPlayer.volume = 0.15;
+            let u = new SpeechSynthesisUtterance(texto); 
+            u.lang='pt-BR'; 
+            u.rate = 1.1;
+            u.onend = function() { if(isMusicPlaying) radioPlayer.volume = 1.0; };
+            synth.speak(u); 
+        }
+    }
+
+    function playBeep(freq, dur) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + dur);
+    }
+
+    // --- 4. PLAYER DE MÚSICA GLOBAL ---
+    const stations = [{name:"Heavy Metal", url:"https://listen.181fm.com/181-hardrock_128k.mp3"}, {name:"Alt Rock", url:"https://listen.181fm.com/181-buzz_128k.mp3"}, {name:"Gym Energy", url:"https://listen.181fm.com/181-energy98_128k.mp3"}];
+    let currentStationIndex = 0;
+    const radioPlayer = document.getElementById('rockRadio');
+    let isMusicPlaying = false;
+    radioPlayer.src = stations[0].url;
+
+    function toggleMusic() {
+        if (isMusicPlaying) { radioPlayer.pause(); isMusicPlaying = false; document.getElementById('btnMusicPlay').textContent = "▶️"; } 
+        else { radioPlayer.play().then(() => { isMusicPlaying = true; document.getElementById('btnMusicPlay').textContent = "⏸"; document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;}); }
+    }
+    function nextStation() {
+        currentStationIndex = (currentStationIndex + 1) % stations.length;
+        radioPlayer.src = stations[currentStationIndex].url;
+        document.getElementById('musicStatus').textContent = `Sintonizando...`;
+        if(isMusicPlaying) radioPlayer.play().then(()=> {document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;});
+    }
+
+    // --- 5. A INTELIGÊNCIA ARTIFICIAL (GERADOR) ---
     async function gerarTreinoComIA() {
         const status = document.getElementById('statusIA');
         const btn = document.getElementById('btnGerarTreino');
         const apiKey = document.getElementById('apiKey').value.trim();
         const prompt = document.getElementById('aiForm').value.trim();
 
-        if(!apiKey) { alert("Você precisa inserir sua API Key do Google."); return; }
-        if(!prompt) { alert("Descreva como você quer o seu treino."); return; }
+        if(!apiKey) { alert("Cole sua API Key do Google."); return; }
+        if(!prompt) { alert("Descreva como você quer treinar."); return; }
         
-        // Salva a chave para as próximas vezes
         localStorage.setItem('gemini_api_key', apiKey);
         document.getElementById('apiContainer').style.display = 'none';
 
         status.textContent = "⏳ Analisando seu perfil e montando o treino...";
-        btn.disabled = true;
-        btn.style.opacity = "0.5";
+        btn.disabled = true; btn.style.opacity = "0.5";
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
-        const payload = {
-            "contents": [{
-                "parts": [{ "text": `Atue como um Personal Trainer especialista. Crie um treino baseado nestes dados do aluno: "${prompt}". Retorne APENAS um array JSON puro de objetos com a estrutura exata: { "title": "Nome do Exercício", "duration": tempo_em_segundos_como_numero, "desc": "Como executar", "type": "Força ou Cardio ou Descanso ou Transição", "color": "var(--forca) ou var(--cardio) ou var(--descanso) ou var(--transicao)", "spoken": "Nome curto para a voz falar" }. Não adicione markdown, crases ou texto extra, apenas o [ ... ] JSON.` }]
-            }]
-        };
+        const instrucao = `Atue como um Personal Trainer. Baseado nestes dados do aluno: "${prompt}". Retorne APENAS um array JSON válido. Estrutura exata de cada objeto: {"title": "Nome do Exercício", "duration": segundos_como_numero, "desc": "Instrução", "type": "Força ou Cardio ou Descanso", "color": "var(--forca) ou var(--cardio) ou var(--descanso)", "spoken": "Nome curto para a voz falar"}. Nunca use crases ou markdown na resposta, apenas inicie com [ e termine com ].`;
 
         try {
-            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({"contents": [{"parts": [{"text": instrucao}]}]}) });
             const data = await response.json();
             
-            if(data.error) { throw new Error(data.error.message); }
+            if(data.error) throw new Error(data.error.message);
 
             let jsonText = data.candidates[0].content.parts[0].text;
-            // Limpa formatação markdown caso a IA envie
-            jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim(); 
+            // Limpeza robusta do texto gerado pela IA
+            const firstBracket = jsonText.indexOf('[');
+            const lastBracket = jsonText.lastIndexOf(']');
+            if(firstBracket !== -1 && lastBracket !== -1) {
+                jsonText = jsonText.substring(firstBracket, lastBracket + 1);
+            }
             
             const novoTreino = JSON.parse(jsonText);
-            
-            // Salva o treino recém criado
             localStorage.setItem('treino_ia_alcino', JSON.stringify(novoTreino));
             
-            status.textContent = "✅ Treino criado com sucesso!";
-            alert("Seu treino foi montado! Vamos adicioná-lo ao menu.");
-            
-            // Recarrega o app para atualizar o menu com o novo treino
-            location.reload(); 
-            
+            alert("✅ Treino montado com sucesso!");
+            location.reload(); // Recarrega para mostrar o botão novo
         } catch(e) {
-            status.textContent = "⚠️ Erro ao gerar treino. Verifique sua API Key ou tente novamente.";
-            console.error("Erro IA:", e);
-            btn.disabled = false;
-            btn.style.opacity = "1";
+            status.textContent = "⚠️ Erro. Tente novamente ou verifique a API Key.";
+            console.error(e);
+            btn.disabled = false; btn.style.opacity = "1";
         }
     }
+
+    // --- 6. MOTOR DO TREINO IA (EXECUÇÃO) ---
+    let iaPlan = [];
+    let iaStep = 0;
+    let iaTimeLeft = 0;
+    let iaInterval = null;
+    let iaRunning = false;
+
+    function formatTime(s) { const m=Math.floor(s/60).toString().padStart(2,'0'); const sec=(s%60).toString().padStart(2,'0'); return `${m}:${sec}`; }
+
+    function carregarTreinoIA() {
+        const data = localStorage.getItem('treino_ia_alcino');
+        if(data) {
+            iaPlan = JSON.parse(data);
+            iaStep = 0;
+            iaTimeLeft = iaPlan[0].duration;
+            atualizarTelaIA();
+        }
+    }
+
+    function atualizarTelaIA() {
+        if(!iaPlan[iaStep]) return;
+        const step = iaPlan[iaStep];
+        document.getElementById('iaExTitle').textContent = step.title;
+        document.getElementById('iaExTitle').style.color = step.color;
+        document.getElementById('iaExDesc').textContent = step.desc;
+        document.getElementById('iaTimeDisplay').textContent = formatTime(iaTimeLeft);
+        
+        const pct = iaTimeLeft / step.duration;
+        const offset = 283 - (pct * 283);
+        document.getElementById('iaCircleProgress').style.strokeDashoffset = offset;
+        document.getElementById('iaCircleProgress').style.stroke = step.color;
+    }
+
+    function tickIA() {
+        if(iaTimeLeft > 0) {
+            iaTimeLeft--;
+            if(iaTimeLeft > 0 && iaTimeLeft <= 3) playBeep(600, 0.2);
+            else if(iaTimeLeft === 0) { playBeep(900, 0.6); avancarTreinoIA(); return; }
+            atualizarTelaIA();
+        }
+    }
+
+    function avancarTreinoIA() {
+        iaStep++;
+        if(iaStep < iaPlan.length) {
+            iaTimeLeft = iaPlan[iaStep].duration;
+            atualizarTelaIA();
+            let nxt = iaPlan[iaStep+1] ? (" Prepare-se para " + iaPlan[iaStep+1].spoken) : "";
+            speakIntelligent("Valendo! " + iaPlan[iaStep].spoken + "." + nxt);
+        } else {
+            finalizarTreinoComum();
+        }
+    }
+
+    function toggleTreinoIA() {
+        const btn = document.getElementById('iaBtnPlay');
+        if(!iaRunning) {
+            if(iaStep === 0 && iaTimeLeft === iaPlan[0].duration) {
+                carregarTreinoIA(); // Garante carregamento
+                speakIntelligent("Treino personalizado iniciado. " + iaPlan[0].spoken);
+            }
+            iaInterval = setInterval(tickIA, 1000);
+            iaRunning = true; btn.textContent = "⏸ PAUSAR"; btn.style.backgroundColor = "var(--warning)";
+        } else {
+            clearInterval(iaInterval);
+            iaRunning = false; btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor = "var(--primary)";
+        }
+    }
+    
+    // Carrega plano ao abrir o app
+    carregarTreinoIA();
+
+    // --- 7. LÓGICA TREINO INICIANTE 1 (ESTÁTICO) E GPS (RESUMIDO) ---
+    // (Lógica simples para manter os outros botões funcionando)
+    let t1Timer, t1Left = 1800, t1Run = false;
+    function toggleTimer1() {
+        const btn = document.getElementById('btnPlay1');
+        if(!t1Run) { speakIntelligent("Iniciante um iniciado."); t1Run = true; btn.textContent = "⏸ PAUSAR"; btn.style.backgroundColor="var(--warning)"; t1Timer = setInterval(()=>{if(t1Left>0){t1Left--; document.getElementById('timeDisplay1').textContent=formatTime(t1Left);}else{finalizarTreinoComum();}},1000);} 
+        else { t1Run = false; clearInterval(t1Timer); btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor="var(--primary)";}
+    }
+
+    function finalizarTreinoComum() {
+        clearInterval(t1Timer); clearInterval(iaInterval);
+        treinosConcluidos++; localStorage.setItem('treinos_alcino', treinosConcluidos);
+        document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
+        speakIntelligent("Excelente trabalho! Treino concluído.");
+        openScreen('screen-menu');
+    }
+
+    // Inicializa Mapa GPS
+    let map = L.map('map').setView([-22.9, -47.0], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM'}).addTo(map);
+    let runIsActive = false;
+    function toggleRun() { const btn=document.getElementById('btnRunAction'); if(!runIsActive){speakIntelligent("Corrida iniciada."); runIsActive=true; btn.textContent="⏹ FINALIZAR"; btn.style.backgroundColor="var(--forca)";}else{runIsActive=false; btn.textContent="▶ INICIAR"; btn.style.backgroundColor="var(--primary)"; speakIntelligent("Corrida finalizada.");}}
+    function stopRunAndExit() { if(runIsActive) toggleRun(); openScreen('screen-menu'); }
+
 </script>
+</body>
+</html>
