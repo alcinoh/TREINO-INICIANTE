@@ -128,10 +128,6 @@
     <div id="screen-assistant" class="screen">
         <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Personal Trainer IA</h1></header>
         <div style="padding: 20px;">
-            <div id="apiContainer" style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <p style="font-size: 0.8rem; color: var(--warning); margin-bottom: 10px;">🔑 Cole sua API Key do Google Gemini aqui.</p>
-                <input type="text" id="apiKey" class="input-ia" placeholder="Cole a chave aqui...">
-            </div>
             <p style="font-size: 0.95rem; margin-bottom: 10px; font-weight: 600;">Descreva como quer treinar hoje:</p>
             <textarea id="aiForm" class="textarea-ia" placeholder="Ex: Sou Alcino Henrique, quero um treino de 30 min em casa. Tenho halteres de 4kg."></textarea>
             <button class="btn-play" id="btnGerarTreino" onclick="gerarTreinoComIA()">🤖 MONTAR MEU TREINO</button>
@@ -206,9 +202,6 @@
         atualizarFogoBadge();
     }
 
-    const savedKey = localStorage.getItem('gemini_api_key');
-    if(savedKey) { document.getElementById('apiKey').value = savedKey; document.getElementById('apiContainer').style.display = 'none'; }
-
     function openScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id === 'screen-corrida' && map) setTimeout(() => map.invalidateSize(), 200); }
 
     // --- 2. SISTEMA DE GALERIA DE TREINOS ---
@@ -278,41 +271,92 @@
     function toggleMusic() { if (isMusicPlaying) { radioPlayer.pause(); isMusicPlaying = false; document.getElementById('btnMusicPlay').textContent = "▶️"; } else { radioPlayer.play().then(() => { isMusicPlaying = true; document.getElementById('btnMusicPlay').textContent = "⏸"; document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;}); } }
     function nextStation() { currentStationIndex = (currentStationIndex + 1) % stations.length; radioPlayer.src = stations[currentStationIndex].url; document.getElementById('musicStatus').textContent = `Sintonizando...`; if(isMusicPlaying) radioPlayer.play().then(()=> {document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;}); }
 
-    // --- 5. INTELIGÊNCIA ARTIFICIAL ESTÁVEL (JSON MODE + 1.5 FLASH) ---
-    function resetarChave() { localStorage.removeItem('gemini_api_key'); document.getElementById('apiContainer').style.display = 'block'; document.getElementById('apiKey').value = ''; document.getElementById('statusIA').innerHTML = ''; }
-    
+    // --- 5. INTELIGÊNCIA ARTIFICIAL ESTÁVEL (via proxy Apps Script — sem pedir API Key ao usuário) ---
+    // Troque pela URL /exec do seu Web App do Apps Script depois de implantar o Code.gs (veja instruções em anexo).
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwltsM4ltR349ssC6L0uqEFGbxMl9FNRW6vPpqs6ihinEf97UtI8DXwu_l3ScfCzu9a/exec';
+    // Senha simples só para evitar que gente aleatória descubra a URL e gaste sua cota de IA.
+    // Precisa bater com a Script Property APP_TOKEN configurada no Apps Script.
+    const APP_TOKEN = 'troque-por-uma-senha-simples';
+    const GEMINI_TIMEOUT_MS = 30000; // 30s — evita ficar "carregando" para sempre se a rede cair
+
     async function gerarTreinoComIA() {
         const status = document.getElementById('statusIA'); const btn = document.getElementById('btnGerarTreino');
-        const apiKey = document.getElementById('apiKey').value.trim(); const prompt = document.getElementById('aiForm').value.trim();
-        if(!apiKey) { alert("Cole sua API Key."); return; } if(!prompt) { alert("Descreva o treino."); return; }
-        
-        localStorage.setItem('gemini_api_key', apiKey); document.getElementById('apiContainer').style.display = 'none';
+        const prompt = document.getElementById('aiForm').value.trim();
+        if(!prompt) { alert("Descreva o treino."); return; }
+
         btn.disabled = true; btn.style.opacity = "0.5"; status.innerHTML = "⏳ Montando seu treino..."; status.style.color = "var(--primary)";
 
+        // Timeout manual: sem isso, se a rede cair no meio da chamada o fetch pode
+        // ficar "pendurado" e a tela fica travada em "Montando seu treino..." pra sempre.
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
         try {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-            const payload = {
-                "contents": [{"parts": [{"text": "Crie um treino para: " + prompt}]}],
-                "systemInstruction": {"parts": [{"text": "Retorne APENAS um array JSON válido. Estrutura de cada objeto obrigatória: {'title': 'Nome', 'duration': segundos_numero, 'desc': 'Instrucao', 'type': 'Forca/Cardio/Descanso', 'color': 'var(--forca) ou var(--cardio) ou var(--descanso)', 'spoken': 'nome curto'}. Não inclua markdown."}]},
-                "generationConfig": { "responseMimeType": "application/json" }
-            };
-            
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-            const data = await response.json();
-            if(!response.ok) throw new Error(data.error?.message || "Erro de conexão.");
-            
-            const novoTreino = JSON.parse(data.candidates[0].content.parts[0].text);
-            
+            if(PROXY_URL.includes('COLE_AQUI')) throw new Error("O app ainda não foi configurado com a URL do proxy (veja as instruções de instalação).");
+
+            // Content-Type text/plain de propósito: evita o preflight OPTIONS que o Apps Script
+            // não trata bem, mesmo enviando um corpo JSON de verdade (o Apps Script lê o texto puro).
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ prompt: prompt, token: APP_TOKEN }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const resultado = await response.json();
+
+            if(!resultado.ok) {
+                const codigo = resultado.code;
+                let msg = resultado.message || "Erro ao falar com a IA.";
+                if(codigo === 401) msg = "Senha do app incorreta. Confira o APP_TOKEN no index.html e no Apps Script.";
+                else if(codigo === 429) msg = "Limite de uso gratuito da API atingido no momento. Aguarde 1 minuto e tente de novo.";
+                else if(codigo === 404) msg = "O modelo de IA usado pelo app não foi encontrado (o Google pode ter descontinuado esse modelo). Avise o desenvolvedor do app.";
+                else if(codigo === 503) msg = "Os servidores da IA estão sobrecarregados agora. Tente novamente em alguns segundos.";
+                throw new Error(msg);
+            }
+
+            const data = resultado.data;
+
+            // Bloqueio de segurança no PROMPT (antes mesmo de gerar) — acontece raramente,
+            // mas travava o app com um erro genérico e confuso antes desta correção.
+            const bloqueio = data.promptFeedback?.blockReason;
+            if(bloqueio) throw new Error("Seu pedido foi bloqueado pelo filtro de segurança da IA (" + bloqueio + "). Tente reescrever a descrição do treino.");
+
+            const candidate = data.candidates?.[0];
+            if(!candidate) throw new Error("A IA não retornou nenhum treino dessa vez. Tente novamente.");
+            if(candidate.finishReason === 'SAFETY') throw new Error("O treino gerado foi bloqueado por segurança. Tente reescrever a descrição de forma mais simples.");
+            if(candidate.finishReason === 'MAX_TOKENS') throw new Error("O treino pedido ficou grande demais e foi cortado. Peça algo mais curto ou com menos etapas.");
+
+            const textoResposta = candidate.content?.parts?.[0]?.text;
+            if(!textoResposta) throw new Error("A IA devolveu uma resposta vazia. Tente novamente.");
+
+            let novoTreino;
+            try { novoTreino = JSON.parse(textoResposta); }
+            catch(parseErr) { throw new Error("A IA devolveu um formato inválido dessa vez. Tente novamente ou simplifique o pedido."); }
+
+            if(!Array.isArray(novoTreino) || novoTreino.length === 0) throw new Error("A IA não gerou etapas de treino válidas. Tente novamente.");
+            const etapaInvalida = novoTreino.find(e => !e.title || !e.duration || !e.desc || !e.spoken);
+            if(etapaInvalida) throw new Error("O treino veio incompleto (faltou algum dado em uma etapa). Tente novamente.");
+
             let galeria = JSON.parse(localStorage.getItem('galeria_treinos_alcino') || '[]');
             const dataAtual = new Date().toLocaleDateString('pt-BR');
-            const tituloResumo = prompt.substring(0, 25) + "..."; 
-            
+            const tituloResumo = prompt.substring(0, 25) + (prompt.length > 25 ? "..." : "");
+
             galeria.unshift({ title: `Treino IA (${tituloResumo})`, date: dataAtual, plan: novoTreino });
-            if(galeria.length > 10) galeria.pop(); 
+            if(galeria.length > 10) galeria.pop();
             localStorage.setItem('galeria_treinos_alcino', JSON.stringify(galeria));
-            
+
+            status.innerHTML = "";
             alert("✅ Treino montado e salvo na sua Galeria!"); abrirGaleria();
-        } catch(e) { status.innerHTML = `⚠️ Erro: ${e.message}<br><button onclick="resetarChave()" style="padding:5px; margin-top:5px; border-radius:5px;">Trocar API Key</button>`; btn.disabled = false; btn.style.opacity = "1"; }
+        } catch(e) {
+            clearTimeout(timeoutId);
+            const mensagem = e.name === 'AbortError' ? "A IA demorou demais para responder. Verifique sua internet e tente de novo." : e.message;
+            status.innerHTML = `⚠️ Erro: ${mensagem}<br><button onclick="gerarTreinoComIA()" style="padding:6px 12px; margin-top:8px; border-radius:6px; border:none; cursor:pointer; font-weight:600;">🔄 Tentar de novo</button>`;
+        } finally {
+            // Antes, isso só rodava dentro do catch: se o treino era gerado com SUCESSO,
+            // o botão ficava travado (disabled) pra sempre até recarregar a página.
+            btn.disabled = false; btn.style.opacity = "1";
+        }
     }
 
     // --- 6. EXECUÇÃO TREINO IA ---
