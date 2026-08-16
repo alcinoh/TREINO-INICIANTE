@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | App V5.1</title>
+    <title>Treino Alcino | App V6.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
             --bg-dark: #0f172a; --bg-card: #1e293b; --primary: #38bdf8;
@@ -16,11 +17,11 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        
+
         /* CORREÇÃO DE ROLAGEM APLICADA AQUI */
         body { background-color: #000; display: flex; justify-content: center; height: 100dvh; margin: 0; overflow: hidden; }
         #app-container { width: 100%; max-width: 420px; background-color: var(--bg-dark); height: 100%; display: flex; flex-direction: column; color: var(--text-main); position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); overflow: hidden; }
-        .screen { display: none; flex-direction: column; flex: 1; overflow-y: auto; padding-bottom: 100px; } 
+        .screen { display: none; flex-direction: column; flex: 1; overflow-y: auto; padding-bottom: 100px; }
         .screen.active { display: flex; }
 
         header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;}
@@ -32,8 +33,9 @@
         .menu-card { background: var(--bg-card); border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.1s;}
         .menu-card:active { transform: scale(0.98); border-color: var(--primary); }
         .menu-icon { font-size: 2rem; }
-        .profile-section { text-align: center; padding: 30px 20px 10px; }
-        .avatar { width: 70px; height: 70px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; margin: 0 auto 10px; color: #000; font-weight: 700;}
+        .profile-section { text-align: center; padding: 30px 20px 10px; cursor: pointer; }
+        .avatar { width: 70px; height: 70px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; margin: 0 auto 10px; color: #000; font-weight: 700; overflow: hidden; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
         .timer-section { padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
         .timer-circle { position: relative; width: 220px; height: 220px; margin: 0 auto 20px; }
@@ -52,29 +54,42 @@
 
         .input-ia { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #fff; color: #000; font-size: 1rem; margin-bottom: 15px; font-family: inherit;}
         .textarea-ia { width: 100%; height: 150px; background: #fff; color: #000; border-radius: 10px; padding: 15px; border: none; font-size: 1rem; margin-bottom: 15px; font-family: inherit; resize: none;}
-        
+        .label-ia { font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px; }
+
         .dashboard-container { padding: 20px; }
         .chart-box { background: var(--bg-card); border-radius: 15px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
         .chart-title { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; text-align: center;}
         .history-list { display: flex; flex-direction: column; gap: 10px; }
-        .history-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--primary);}
+        .history-item { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--primary); gap: 8px; }
         .hist-date { font-size: 0.8rem; color: var(--text-muted); }
         .hist-info { font-weight: 600; font-size: 0.95rem; }
+        .icon-btn { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; padding: 6px; line-height: 1; flex-shrink: 0; }
+        .icon-btn.danger { color: var(--forca); }
     </style>
 </head>
 <body>
 
 <div id="app-container">
-    
+
+    <!-- TELA DE LOGIN -->
+    <div id="screen-login" class="screen active" style="justify-content:center; align-items:center; text-align:center; padding:30px;">
+        <div style="font-size:3rem; margin-bottom:10px;">🏋️</div>
+        <h2 style="margin-bottom:10px; text-transform:none; letter-spacing:0; color:var(--text-main);">Treino Alcino</h2>
+        <p style="color:var(--text-muted); margin-bottom:25px; font-size:0.9rem;">Entre com sua conta Google para acessar seus treinos.</p>
+        <div id="googleSignInDiv"></div>
+        <div id="loginStatus" style="margin-top:15px; font-size:0.85rem; color:var(--warning);"></div>
+    </div>
+
     <!-- MENU PRINCIPAL -->
-    <div id="screen-menu" class="screen active">
-        <div class="profile-section">
-            <div class="avatar">H</div>
-            <h2>Olá, Alcino Henrique!</h2>
+    <div id="screen-menu" class="screen">
+        <div class="profile-section" onclick="openScreen('screen-perfil')">
+            <div class="avatar" id="avatarDisplay">?</div>
+            <h2 id="userNomeDisplay" style="text-transform:none; letter-spacing:0; color:var(--text-main); font-size:1.3rem;">Olá!</h2>
             <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
+            <div><button onclick="event.stopPropagation(); fazerLogout();" style="background:none;border:none;color:var(--text-muted);font-size:0.75rem;margin-top:10px;text-decoration:underline;cursor:pointer;">Sair da conta</button></div>
         </div>
         <div class="menu-grid" id="menuList">
-            
+
             <div class="menu-card" onclick="abrirDashboard()" style="background: linear-gradient(145deg, var(--bg-card), #0f172a); border-color: var(--primary);">
                 <div class="menu-icon">📊</div>
                 <div><h2 style="font-size: 1.1rem; color: var(--primary);">Meu Desempenho</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Gráficos e Histórico.</p></div>
@@ -86,16 +101,21 @@
                 <div><h2 style="font-size: 1.1rem; color: var(--warning);">Galeria de Treinos</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Seus treinos IA salvos.</p></div>
             </div>
 
+            <div class="menu-card" onclick="openScreen('screen-perfil')" style="border-left: 4px solid #a78bfa;">
+                <div class="menu-icon">👤</div>
+                <div><h2 style="font-size: 1.1rem; color: #a78bfa;">Meu Perfil</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Seus dados e foto.</p></div>
+            </div>
+
             <div class="menu-card" onclick="openScreen('screen-iniciante')">
                 <div class="menu-icon">💪</div>
                 <div><h2 style="font-size: 1.1rem;">Iniciante 1</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Circuito Full Body 30 min.</p></div>
             </div>
-            
+
             <div class="menu-card" onclick="openScreen('screen-corrida')">
                 <div class="menu-icon">🏃‍♂️</div>
                 <div><h2 style="font-size: 1.1rem;">Corrida Livre</h2><p style="font-size: 0.8rem; color: var(--text-muted);">GPS satélite, Mapa e Ritmo.</p></div>
             </div>
-            
+
             <div class="menu-card" onclick="openScreen('screen-assistant')" style="border: 2px dashed var(--primary); background: rgba(56, 189, 248, 0.05);">
                 <div class="menu-icon">🤖</div>
                 <div><h2 style="font-size: 1.1rem; color: var(--primary);">Assistente IA</h2><p style="font-size: 0.8rem; color: var(--text-muted);">Criar novo treino sob medida.</p></div>
@@ -103,11 +123,35 @@
         </div>
     </div>
 
+    <!-- TELA MEU PERFIL -->
+    <div id="screen-perfil" class="screen">
+        <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Meu Perfil</h1></header>
+        <div style="padding: 20px;">
+            <div style="text-align:center; margin-bottom:25px;">
+                <div id="perfilFotoPreview" class="avatar" style="width:90px;height:90px;font-size:2.2rem;">?</div>
+                <label for="perfilFotoInput" style="display:inline-block; margin-top:10px; font-size:0.8rem; color:var(--primary); cursor:pointer; text-decoration:underline;">Trocar foto</label>
+                <input type="file" id="perfilFotoInput" accept="image/*" style="display:none;" onchange="onFotoSelecionada(event)">
+            </div>
+            <label class="label-ia">Nome</label>
+            <input type="text" id="perfilNome" class="input-ia" placeholder="Seu nome">
+            <label class="label-ia">Idade</label>
+            <input type="number" id="perfilIdade" class="input-ia" placeholder="Ex: 42">
+            <label class="label-ia">Peso (kg)</label>
+            <input type="number" id="perfilPeso" class="input-ia" placeholder="Ex: 78">
+            <label class="label-ia">Altura (cm)</label>
+            <input type="number" id="perfilAltura" class="input-ia" placeholder="Ex: 175">
+            <label class="label-ia">Objetivo</label>
+            <input type="text" id="perfilObjetivo" class="input-ia" placeholder="Ex: Emagrecer, ganhar força...">
+            <button class="btn-play" onclick="salvarPerfil()">💾 SALVAR PERFIL</button>
+            <div id="statusPerfil" style="margin-top:12px; font-size:0.85rem; text-align:center; font-weight:600;"></div>
+        </div>
+    </div>
+
     <!-- TELA GALERIA DE TREINOS -->
     <div id="screen-galeria" class="screen">
         <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Meus Treinos</h1></header>
         <div class="dashboard-container">
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Aqui ficam os seus 10 últimos treinos gerados pela IA.</p>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; text-align: center;">Aqui ficam os seus 10 últimos treinos gerados pela IA. Toque no ✏️ para renomear ou no 🗑️ para apagar.</p>
             <div class="history-list" id="galeriaListContent">
                 <!-- Preenchido via JS -->
             </div>
@@ -129,7 +173,7 @@
         <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Personal Trainer IA</h1></header>
         <div style="padding: 20px;">
             <p style="font-size: 0.95rem; margin-bottom: 10px; font-weight: 600;">Descreva como quer treinar hoje:</p>
-            <textarea id="aiForm" class="textarea-ia" placeholder="Ex: Sou Alcino Henrique, quero um treino de 30 min em casa. Tenho halteres de 4kg."></textarea>
+            <textarea id="aiForm" class="textarea-ia" placeholder="Ex: quero um treino de 30 min em casa. Tenho halteres de 4kg."></textarea>
             <button class="btn-play" id="btnGerarTreino" onclick="gerarTreinoComIA()">🤖 MONTAR MEU TREINO</button>
             <div id="statusIA" style="margin-top:15px; font-size: 0.9rem; text-align: center; color: var(--primary); font-weight: 600;"></div>
         </div>
@@ -190,78 +234,273 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script>
-    // --- 1. CONFIGURAÇÕES ---
-    function atualizarFogoBadge() { document.getElementById('streakBadge').textContent = `🔥 ${localStorage.getItem('treinos_alcino') || 0} Treinos`; }
-    atualizarFogoBadge();
+    // --- 0. CONFIGURAÇÃO DE BACKEND (Apps Script) E LOGIN GOOGLE ---
+    // Troque pela URL /exec do seu Web App do Apps Script (veja instruções de instalação).
+    const PROXY_URL = 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT/exec';
+    // Client ID criado no Google Cloud Console para o "Sign in with Google" (veja instruções).
+    const GOOGLE_CLIENT_ID = '512064269375-vri4lfn8u5rtar25dfd9l7p52pmr18uj.apps.googleusercontent.com';
 
-    function registrarTreino(nomeDoTreino, duracaoMinutos, distanciaKm = 0) {
-        let historico = JSON.parse(localStorage.getItem('historico_treinos_alcino') || '[]');
-        historico.push({ data: new Date().toLocaleDateString('pt-BR').substring(0,5), tipo: nomeDoTreino, minutos: duracaoMinutos, km: distanciaKm });
-        localStorage.setItem('historico_treinos_alcino', JSON.stringify(historico));
-        localStorage.setItem('treinos_alcino', parseInt(localStorage.getItem('treinos_alcino') || 0) + 1);
+    let currentIdToken = null;
+    let currentUser = null; // {userId, email, nome, foto}
+    let galeriaCache = [];
+    let historicoCache = [];
+    let fotoBase64Pendente = null;
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str === null || str === undefined ? '' : String(str);
+        return div.innerHTML;
+    }
+
+    // Chamada genérica ao backend. Sempre manda o idToken atual (exceto se ainda não logado).
+    async function chamarAPI(action, params, timeoutMs = 30000) {
+        if (PROXY_URL.includes('COLE_AQUI')) {
+            return { ok: false, code: 0, message: "O app ainda não foi configurado com a URL do proxy (veja as instruções de instalação)." };
+        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const body = Object.assign({ action: action, idToken: currentIdToken }, params || {});
+            // Content-Type text/plain de propósito: evita o preflight OPTIONS que o Apps Script
+            // não trata bem, mesmo enviando um corpo JSON de verdade (o Apps Script lê o texto puro).
+            const response = await fetch(PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(body),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const resultado = await response.json();
+            if (!resultado.ok && resultado.code === 401 && action !== 'getPerfil') {
+                fazerLogout("Sua sessão expirou. Entre novamente.");
+            }
+            return resultado;
+        } catch (e) {
+            clearTimeout(timeoutId);
+            if (e.name === 'AbortError') return { ok: false, code: 0, message: "A requisição demorou demais. Verifique sua internet." };
+            return { ok: false, code: 0, message: "Falha de conexão: " + e.message };
+        }
+    }
+
+    function initGoogleSignIn() {
+        if (typeof google === 'undefined' || !google.accounts) { setTimeout(initGoogleSignIn, 300); return; }
+        if (GOOGLE_CLIENT_ID.includes('COLE_AQUI')) {
+            document.getElementById('loginStatus').innerHTML = "⚠️ App ainda não configurado com o Google Client ID (veja as instruções de instalação).";
+            return;
+        }
+        google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse });
+        google.accounts.id.renderButton(document.getElementById('googleSignInDiv'), { theme: 'filled_blue', size: 'large', shape: 'pill' });
+    }
+    window.addEventListener('load', initGoogleSignIn);
+
+    async function handleCredentialResponse(response) {
+        currentIdToken = response.credential;
+        const loginStatus = document.getElementById('loginStatus');
+        loginStatus.style.color = 'var(--text-muted)'; loginStatus.textContent = "Entrando...";
+
+        const perfilRes = await chamarAPI('getPerfil', {});
+        if (!perfilRes.ok) {
+            loginStatus.style.color = 'var(--forca)';
+            loginStatus.textContent = "Erro ao entrar: " + perfilRes.message;
+            currentIdToken = null;
+            return;
+        }
+
+        // O backend já validou o token; aqui só decodificamos localmente pra pegar dados básicos.
+        const payload = JSON.parse(atob(currentIdToken.split('.')[1]));
+        currentUser = { userId: payload.sub, email: payload.email, nome: payload.name, foto: payload.picture };
+
+        aplicarPerfilNaTela(perfilRes.perfil);
+        loginStatus.textContent = "";
+        openScreen('screen-menu');
+        await carregarHistoricoEAtualizarStreak();
+    }
+
+    function fazerLogout(motivo) {
+        currentIdToken = null; currentUser = null; galeriaCache = []; historicoCache = [];
+        openScreen('screen-login');
+        if (motivo) { const el = document.getElementById('loginStatus'); el.style.color = 'var(--warning)'; el.textContent = motivo; }
+        setTimeout(initGoogleSignIn, 100);
+    }
+
+    // --- PERFIL ---
+    function aplicarPerfilNaTela(perfil) {
+        const nomeExibir = (perfil.nome && perfil.nome.trim()) || (currentUser && currentUser.nome) || 'Atleta';
+        document.getElementById('userNomeDisplay').textContent = 'Olá, ' + nomeExibir.split(' ')[0] + '!';
+
+        const fotoParaMostrar = perfil.fotoUrl || (currentUser && currentUser.foto) || '';
+        const inicial = (nomeExibir[0] || '?').toUpperCase();
+
+        const avatarEl = document.getElementById('avatarDisplay');
+        avatarEl.innerHTML = fotoParaMostrar ? `<img src="${fotoParaMostrar}" alt="Foto de perfil">` : inicial;
+
+        const previewEl = document.getElementById('perfilFotoPreview');
+        previewEl.innerHTML = fotoParaMostrar ? `<img src="${fotoParaMostrar}" alt="Foto de perfil">` : inicial;
+
+        document.getElementById('perfilNome').value = perfil.nome || '';
+        document.getElementById('perfilIdade').value = perfil.idade || '';
+        document.getElementById('perfilPeso').value = perfil.peso || '';
+        document.getElementById('perfilAltura').value = perfil.altura || '';
+        document.getElementById('perfilObjetivo').value = perfil.objetivo || '';
+    }
+
+    function onFotoSelecionada(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const img = new Image();
+            img.onload = function() {
+                // Recorta um quadrado central e redimensiona pra no máximo 300x300 —
+                // evita mandar fotos gigantes pro Drive/Sheets.
+                const tamanho = 300;
+                const canvas = document.createElement('canvas');
+                canvas.width = tamanho; canvas.height = tamanho;
+                const ctx = canvas.getContext('2d');
+                const lado = Math.min(img.width, img.height);
+                const sx = (img.width - lado) / 2, sy = (img.height - lado) / 2;
+                ctx.drawImage(img, sx, sy, lado, lado, 0, 0, tamanho, tamanho);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                fotoBase64Pendente = dataUrl.split(',')[1];
+                document.getElementById('perfilFotoPreview').innerHTML = `<img src="${dataUrl}" alt="Prévia da foto">`;
+            };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function salvarPerfil() {
+        const status = document.getElementById('statusPerfil');
+        status.style.color = 'var(--primary)'; status.textContent = "⏳ Salvando...";
+
+        let fotoUrl = null;
+        if (fotoBase64Pendente) {
+            const resFoto = await chamarAPI('uploadFoto', { base64: fotoBase64Pendente, mimeType: 'image/jpeg' });
+            if (!resFoto.ok) { status.style.color = 'var(--forca)'; status.textContent = "⚠️ Erro ao enviar foto: " + resFoto.message; return; }
+            fotoUrl = resFoto.fotoUrl;
+            fotoBase64Pendente = null;
+        }
+
+        const dados = {
+            nome: document.getElementById('perfilNome').value.trim(),
+            idade: document.getElementById('perfilIdade').value.trim(),
+            peso: document.getElementById('perfilPeso').value.trim(),
+            altura: document.getElementById('perfilAltura').value.trim(),
+            objetivo: document.getElementById('perfilObjetivo').value.trim()
+        };
+        if (fotoUrl) dados.fotoUrl = fotoUrl;
+
+        const res = await chamarAPI('salvarPerfil', dados);
+        if (res.ok) {
+            status.style.color = 'var(--descanso)'; status.textContent = "✅ Perfil salvo!";
+            const perfilAtualizado = Object.assign({}, dados);
+            if (fotoUrl) perfilAtualizado.fotoUrl = fotoUrl;
+            aplicarPerfilNaTela(perfilAtualizado);
+        } else {
+            status.style.color = 'var(--forca)'; status.textContent = "⚠️ Erro: " + res.message;
+        }
+    }
+
+    // --- HISTÓRICO / STREAK ---
+    async function carregarHistoricoEAtualizarStreak() {
+        const res = await chamarAPI('getHistorico', {});
+        if (res.ok) { historicoCache = res.historico; }
         atualizarFogoBadge();
+    }
+
+    function atualizarFogoBadge() { document.getElementById('streakBadge').textContent = `🔥 ${historicoCache.length} Treinos`; }
+
+    async function registrarTreino(nomeDoTreino, duracaoMinutos, distanciaKm = 0) {
+        const novoItem = { data: new Date().toLocaleDateString('pt-BR').substring(0,5), tipo: nomeDoTreino, minutos: duracaoMinutos, km: distanciaKm };
+        historicoCache.push(novoItem);
+        atualizarFogoBadge();
+        await chamarAPI('addHistorico', novoItem);
     }
 
     function openScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id === 'screen-corrida' && map) setTimeout(() => map.invalidateSize(), 200); }
 
-    // --- 2. SISTEMA DE GALERIA DE TREINOS ---
-    function abrirGaleria() {
+    // --- SISTEMA DE GALERIA DE TREINOS (editar nome / apagar) ---
+    async function abrirGaleria() {
         openScreen('screen-galeria');
-        const galeria = JSON.parse(localStorage.getItem('galeria_treinos_alcino') || '[]');
+        const listContainer = document.getElementById('galeriaListContent');
+        listContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem; text-align:center;">Carregando...</p>';
+        const res = await chamarAPI('getGaleria', {});
+        if (!res.ok) { listContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">Erro ao carregar: ${escapeHtml(res.message)}</p>`; return; }
+        galeriaCache = res.galeria;
+        renderGaleria();
+    }
+
+    function renderGaleria() {
         const listContainer = document.getElementById('galeriaListContent');
         listContainer.innerHTML = '';
-        
-        if(galeria.length === 0) {
+        if (galeriaCache.length === 0) {
             listContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Você ainda não gerou nenhum treino na IA.</p>';
-        } else {
-            galeria.forEach((item, index) => {
-                const totalMins = Math.round(item.plan.reduce((acc, step) => acc + step.duration, 0) / 60);
-                listContainer.innerHTML += `
-                    <div class="history-item" style="cursor:pointer;" onclick="iniciarTreinoDaGaleria(${index})">
-                        <div>
-                            <div class="hist-info">${item.title}</div>
-                            <div class="hist-date">${totalMins} min • Gerado em ${item.date}</div>
-                        </div>
-                        <div style="font-size: 1.5rem; color: var(--primary);">▶</div>
-                    </div>
-                `;
-            });
+            return;
         }
+        galeriaCache.forEach((item, index) => {
+            const totalMins = Math.round(item.plan.reduce((acc, step) => acc + step.duration, 0) / 60);
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div style="flex:1; cursor:pointer; min-width:0;" onclick="iniciarTreinoDaGaleria(${index})">
+                    <div class="hist-info" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item.title)}</div>
+                    <div class="hist-date">${totalMins} min • Gerado em ${escapeHtml(item.date)}</div>
+                </div>
+                <button class="icon-btn" title="Renomear" onclick="event.stopPropagation(); renomearItemGaleria('${item.rowId}')">✏️</button>
+                <button class="icon-btn danger" title="Apagar" onclick="event.stopPropagation(); apagarItemGaleria('${item.rowId}')">🗑️</button>
+            `;
+            listContainer.appendChild(div);
+        });
+    }
+
+    async function renomearItemGaleria(rowId) {
+        const item = galeriaCache.find(g => g.rowId === rowId);
+        if (!item) return;
+        const novoTitulo = prompt("Novo nome do treino:", item.title);
+        if (novoTitulo === null || novoTitulo.trim() === '') return;
+        const res = await chamarAPI('renomearGaleria', { rowId: rowId, novoTitulo: novoTitulo.trim() });
+        if (res.ok) { item.title = novoTitulo.trim(); renderGaleria(); }
+        else alert("Erro ao renomear: " + res.message);
+    }
+
+    async function apagarItemGaleria(rowId) {
+        if (!confirm("Apagar esse treino da galeria? Essa ação não pode ser desfeita.")) return;
+        const res = await chamarAPI('apagarGaleria', { rowId: rowId });
+        if (res.ok) { galeriaCache = galeriaCache.filter(g => g.rowId !== rowId); renderGaleria(); }
+        else alert("Erro ao apagar: " + res.message);
     }
 
     function iniciarTreinoDaGaleria(index) {
-        const galeria = JSON.parse(localStorage.getItem('galeria_treinos_alcino') || '[]');
-        const treinoSelecionado = galeria[index];
-        if(treinoSelecionado) {
+        const treinoSelecionado = galeriaCache[index];
+        if (treinoSelecionado) {
             document.getElementById('iaHeaderTitle').textContent = treinoSelecionado.title;
             carregarTreinoIA(treinoSelecionado.plan);
             openScreen('screen-treino-ia');
         }
     }
 
-    // --- 3. DASHBOARD (GRÁFICOS) ---
+    // --- DASHBOARD (GRÁFICOS) ---
     let meuGrafico = null;
     function abrirDashboard() {
         openScreen('screen-dashboard');
-        const historico = JSON.parse(localStorage.getItem('historico_treinos_alcino') || '[]');
         const listContainer = document.getElementById('historyListContent');
         listContainer.innerHTML = '';
-        
-        if(historico.length === 0) { listContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Nenhum treino registrado ainda.</p>'; } 
+
+        if (historicoCache.length === 0) { listContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.9rem;">Nenhum treino registrado ainda.</p>'; }
         else {
-            [...historico].reverse().slice(0, 5).forEach(item => {
+            [...historicoCache].reverse().slice(0, 5).forEach(item => {
                 let extra = item.km > 0 ? ` (${item.km} km)` : '';
-                listContainer.innerHTML += `<div class="history-item"><div><div class="hist-info">${item.tipo}</div><div class="hist-date">${item.minutos} min ${extra}</div></div><div class="hist-date">${item.data}</div></div>`;
+                listContainer.innerHTML += `<div class="history-item"><div><div class="hist-info">${escapeHtml(item.tipo)}</div><div class="hist-date">${item.minutos} min ${extra}</div></div><div class="hist-date">${escapeHtml(item.data)}</div></div>`;
             });
         }
 
-        const ultimos = historico.slice(-7);
+        const ultimos = historicoCache.slice(-7);
         const ctx = document.getElementById('timeChart').getContext('2d');
-        if(meuGrafico) meuGrafico.destroy();
+        if (meuGrafico) meuGrafico.destroy();
         meuGrafico = new Chart(ctx, { type: 'bar', data: { labels: ultimos.map(h => h.data), datasets: [{ label: 'Minutos', data: ultimos.map(h => h.minutos), backgroundColor: '#38bdf8', borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } } });
     }
 
-    // --- 4. VOZ E MÚSICA ---
+    // --- VOZ E MÚSICA ---
     const synth = window.speechSynthesis; const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function speakIntelligent(texto) { if(synth.speaking) synth.cancel(); if(texto !== '') { if(isMusicPlaying) radioPlayer.volume = 0.15; let u = new SpeechSynthesisUtterance(texto); u.lang='pt-BR'; u.rate = 1.1; u.onend = function() { if(isMusicPlaying) radioPlayer.volume = 1.0; }; synth.speak(u); } }
     function playBeep(freq, dur) { if(audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + dur); }
@@ -271,47 +510,23 @@
     function toggleMusic() { if (isMusicPlaying) { radioPlayer.pause(); isMusicPlaying = false; document.getElementById('btnMusicPlay').textContent = "▶️"; } else { radioPlayer.play().then(() => { isMusicPlaying = true; document.getElementById('btnMusicPlay').textContent = "⏸"; document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;}); } }
     function nextStation() { currentStationIndex = (currentStationIndex + 1) % stations.length; radioPlayer.src = stations[currentStationIndex].url; document.getElementById('musicStatus').textContent = `Sintonizando...`; if(isMusicPlaying) radioPlayer.play().then(()=> {document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;}); }
 
-    // --- 5. INTELIGÊNCIA ARTIFICIAL ESTÁVEL (via proxy Apps Script — sem pedir API Key ao usuário) ---
-    // Troque pela URL /exec do seu Web App do Apps Script depois de implantar o Code.gs (veja instruções em anexo).
-    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwltsM4ltR349ssC6L0uqEFGbxMl9FNRW6vPpqs6ihinEf97UtI8DXwu_l3ScfCzu9a/exec';
-    // Senha simples só para evitar que gente aleatória descubra a URL e gaste sua cota de IA.
-    // Precisa bater com a Script Property APP_TOKEN configurada no Apps Script.
-    const APP_TOKEN = 'troque-por-uma-senha-simples';
-    const GEMINI_TIMEOUT_MS = 30000; // 30s — evita ficar "carregando" para sempre se a rede cair
-
+    // --- INTELIGÊNCIA ARTIFICIAL (via proxy Apps Script, protegido por login) ---
     async function gerarTreinoComIA() {
         const status = document.getElementById('statusIA'); const btn = document.getElementById('btnGerarTreino');
         const prompt = document.getElementById('aiForm').value.trim();
-        if(!prompt) { alert("Descreva o treino."); return; }
+        if (!prompt) { alert("Descreva o treino."); return; }
 
         btn.disabled = true; btn.style.opacity = "0.5"; status.innerHTML = "⏳ Montando seu treino..."; status.style.color = "var(--primary)";
 
-        // Timeout manual: sem isso, se a rede cair no meio da chamada o fetch pode
-        // ficar "pendurado" e a tela fica travada em "Montando seu treino..." pra sempre.
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
-
         try {
-            if(PROXY_URL.includes('COLE_AQUI')) throw new Error("O app ainda não foi configurado com a URL do proxy (veja as instruções de instalação).");
+            const resultado = await chamarAPI('gerarTreino', { prompt: prompt });
 
-            // Content-Type text/plain de propósito: evita o preflight OPTIONS que o Apps Script
-            // não trata bem, mesmo enviando um corpo JSON de verdade (o Apps Script lê o texto puro).
-            const response = await fetch(PROXY_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ prompt: prompt, token: APP_TOKEN }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            const resultado = await response.json();
-
-            if(!resultado.ok) {
+            if (!resultado.ok) {
                 const codigo = resultado.code;
                 let msg = resultado.message || "Erro ao falar com a IA.";
-                if(codigo === 401) msg = "Senha do app incorreta. Confira o APP_TOKEN no index.html e no Apps Script.";
-                else if(codigo === 429) msg = "Limite de uso gratuito da API atingido no momento. Aguarde 1 minuto e tente de novo.";
-                else if(codigo === 404) msg = "O modelo de IA usado pelo app não foi encontrado (o Google pode ter descontinuado esse modelo). Avise o desenvolvedor do app.";
-                else if(codigo === 503) msg = "Os servidores da IA estão sobrecarregados agora. Tente novamente em alguns segundos.";
+                if (codigo === 429) msg = "Limite de uso gratuito da API atingido no momento. Aguarde 1 minuto e tente de novo.";
+                else if (codigo === 404) msg = "O modelo de IA usado pelo app não foi encontrado (o Google pode ter descontinuado esse modelo). Avise o desenvolvedor do app.";
+                else if (codigo === 503) msg = "Os servidores da IA estão sobrecarregados agora. Tente novamente em alguns segundos.";
                 throw new Error(msg);
             }
 
@@ -320,46 +535,41 @@
             // Bloqueio de segurança no PROMPT (antes mesmo de gerar) — acontece raramente,
             // mas travava o app com um erro genérico e confuso antes desta correção.
             const bloqueio = data.promptFeedback?.blockReason;
-            if(bloqueio) throw new Error("Seu pedido foi bloqueado pelo filtro de segurança da IA (" + bloqueio + "). Tente reescrever a descrição do treino.");
+            if (bloqueio) throw new Error("Seu pedido foi bloqueado pelo filtro de segurança da IA (" + bloqueio + "). Tente reescrever a descrição do treino.");
 
             const candidate = data.candidates?.[0];
-            if(!candidate) throw new Error("A IA não retornou nenhum treino dessa vez. Tente novamente.");
-            if(candidate.finishReason === 'SAFETY') throw new Error("O treino gerado foi bloqueado por segurança. Tente reescrever a descrição de forma mais simples.");
-            if(candidate.finishReason === 'MAX_TOKENS') throw new Error("O treino pedido ficou grande demais e foi cortado. Peça algo mais curto ou com menos etapas.");
+            if (!candidate) throw new Error("A IA não retornou nenhum treino dessa vez. Tente novamente.");
+            if (candidate.finishReason === 'SAFETY') throw new Error("O treino gerado foi bloqueado por segurança. Tente reescrever a descrição de forma mais simples.");
+            if (candidate.finishReason === 'MAX_TOKENS') throw new Error("O treino pedido ficou grande demais e foi cortado. Peça algo mais curto ou com menos etapas.");
 
             const textoResposta = candidate.content?.parts?.[0]?.text;
-            if(!textoResposta) throw new Error("A IA devolveu uma resposta vazia. Tente novamente.");
+            if (!textoResposta) throw new Error("A IA devolveu uma resposta vazia. Tente novamente.");
 
             let novoTreino;
             try { novoTreino = JSON.parse(textoResposta); }
-            catch(parseErr) { throw new Error("A IA devolveu um formato inválido dessa vez. Tente novamente ou simplifique o pedido."); }
+            catch (parseErr) { throw new Error("A IA devolveu um formato inválido dessa vez. Tente novamente ou simplifique o pedido."); }
 
-            if(!Array.isArray(novoTreino) || novoTreino.length === 0) throw new Error("A IA não gerou etapas de treino válidas. Tente novamente.");
+            if (!Array.isArray(novoTreino) || novoTreino.length === 0) throw new Error("A IA não gerou etapas de treino válidas. Tente novamente.");
             const etapaInvalida = novoTreino.find(e => !e.title || !e.duration || !e.desc || !e.spoken);
-            if(etapaInvalida) throw new Error("O treino veio incompleto (faltou algum dado em uma etapa). Tente novamente.");
+            if (etapaInvalida) throw new Error("O treino veio incompleto (faltou algum dado em uma etapa). Tente novamente.");
 
-            let galeria = JSON.parse(localStorage.getItem('galeria_treinos_alcino') || '[]');
             const dataAtual = new Date().toLocaleDateString('pt-BR');
             const tituloResumo = prompt.substring(0, 25) + (prompt.length > 25 ? "..." : "");
+            const tituloFinal = `Treino IA (${tituloResumo})`;
 
-            galeria.unshift({ title: `Treino IA (${tituloResumo})`, date: dataAtual, plan: novoTreino });
-            if(galeria.length > 10) galeria.pop();
-            localStorage.setItem('galeria_treinos_alcino', JSON.stringify(galeria));
+            const resGaleria = await chamarAPI('addGaleria', { title: tituloFinal, date: dataAtual, plan: novoTreino });
+            if (!resGaleria.ok) throw new Error("O treino foi gerado, mas houve erro ao salvar na galeria: " + resGaleria.message);
 
             status.innerHTML = "";
             alert("✅ Treino montado e salvo na sua Galeria!"); abrirGaleria();
-        } catch(e) {
-            clearTimeout(timeoutId);
-            const mensagem = e.name === 'AbortError' ? "A IA demorou demais para responder. Verifique sua internet e tente de novo." : e.message;
-            status.innerHTML = `⚠️ Erro: ${mensagem}<br><button onclick="gerarTreinoComIA()" style="padding:6px 12px; margin-top:8px; border-radius:6px; border:none; cursor:pointer; font-weight:600;">🔄 Tentar de novo</button>`;
+        } catch (e) {
+            status.innerHTML = `⚠️ Erro: ${escapeHtml(e.message)}<br><button onclick="gerarTreinoComIA()" style="padding:6px 12px; margin-top:8px; border-radius:6px; border:none; cursor:pointer; font-weight:600;">🔄 Tentar de novo</button>`;
         } finally {
-            // Antes, isso só rodava dentro do catch: se o treino era gerado com SUCESSO,
-            // o botão ficava travado (disabled) pra sempre até recarregar a página.
             btn.disabled = false; btn.style.opacity = "1";
         }
     }
 
-    // --- 6. EXECUÇÃO TREINO IA ---
+    // --- EXECUÇÃO TREINO IA ---
     let iaPlan = [], iaStep = 0, iaTimeLeft = 0, iaInterval = null, iaRunning = false, iaTotalDuration = 0;
     function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
 
@@ -386,7 +596,7 @@
 
     function avancarTreinoIA() {
         iaStep++;
-        if(iaStep < iaPlan.length) { iaTimeLeft = iaPlan[iaStep].duration; atualizarTelaIA(); speakIntelligent("Valendo! " + iaPlan[iaStep].spoken); } 
+        if(iaStep < iaPlan.length) { iaTimeLeft = iaPlan[iaStep].duration; atualizarTelaIA(); speakIntelligent("Valendo! " + iaPlan[iaStep].spoken); }
         else { clearInterval(iaInterval); iaRunning = false; registrarTreino('Treino IA Salvo', Math.round(iaTotalDuration/60)); speakIntelligent("Treino concluído!"); abrirDashboard(); }
     }
 
@@ -398,7 +608,7 @@
         } else { clearInterval(iaInterval); iaRunning = false; btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor = "var(--primary)"; }
     }
 
-    // --- 7. TREINO INICIANTE E CORRIDA LIVRE ---
+    // --- TREINO INICIANTE E CORRIDA LIVRE ---
     let t1Timer, t1Left = 1800, t1Run = false;
     function toggleTimer1() { const btn = document.getElementById('btnPlay1'); if(!t1Run) { speakIntelligent("Iniciante iniciado."); t1Run = true; btn.textContent = "⏸ PAUSAR"; btn.style.backgroundColor="var(--warning)"; t1Timer = setInterval(()=>{ if(t1Left>0){ t1Left--; document.getElementById('timeDisplay1').textContent=formatTime(t1Left); document.getElementById('circleProgress1').style.strokeDashoffset = 283 - ((t1Left / 1800) * 283); }else{ clearInterval(t1Timer); t1Run = false; registrarTreino('Iniciante 1', 30); speakIntelligent("Treino concluído."); abrirDashboard(); } },1000); } else { t1Run = false; clearInterval(t1Timer); btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor="var(--primary)";} }
 
