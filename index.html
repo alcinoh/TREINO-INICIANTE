@@ -1,159 +1,51 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | App V2.1</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --primary: #38bdf8;
-            --cardio: #0ea5e9;
-            --forca: #ef4444;
-            --descanso: #10b981;
-            --transicao: #64748b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --warning: #f59e0b;
-            --google: #4285F4;
-        }
+<!-- Trecho focado no Menu e no Assistente. Mantenha os estilos anteriores e substitua as telas abaixo -->
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: #000; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
-        #app-container { width: 100%; max-width: 420px; background-color: var(--bg-dark); min-height: 100vh; display: flex; flex-direction: column; color: var(--text-main); position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5); overflow-x: hidden; }
-        
-        .screen { display: none; flex-direction: column; flex-grow: 1; padding-bottom: 90px; } /* Padding para não esconder atrás do player */
-        .screen.active { display: flex; }
-
-        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;}
-        .btn-back { position: absolute; left: 15px; top: 20px; background: none; border: none; color: var(--primary); font-size: 1.5rem; cursor: pointer; }
-        h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
-        .streak-badge { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.3); }
-
-        .menu-grid { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .menu-card { background: var(--bg-card); border-radius: 15px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
-        .menu-card:active { border-color: var(--primary); }
-        .menu-icon { font-size: 2rem; }
-        .profile-section { text-align: center; padding: 30px 20px 10px; }
-        .avatar { width: 70px; height: 70px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; margin: 0 auto 10px; color: #000; font-weight: 700;}
-
-        /* ESTILOS DE TREINO MANTIDOS */
-        .timer-section { padding: 20px; text-align: center; }
-        .timer-circle { position: relative; width: 200px; height: 200px; margin: 0 auto 20px; }
-        .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .time-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 700; }
-        .btn-play { background-color: var(--primary); color: #000; border: none; border-radius: 12px; font-weight: 700; padding: 15px; width: 100%; font-size: 1.1rem; }
-        .hidden { display: none !important; }
-
-        /* FOOTER PLAYER FIXO */
-        .music-player { position: fixed; bottom: 0; width: 100%; max-width: 420px; background: #000; border-top: 1px solid #334155; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 1000; }
-        .music-info { font-size: 0.75rem; color: var(--text-muted); width: 60%; }
-        .music-controls { display: flex; gap: 10px; }
-        .music-btn { background: var(--bg-card); color: var(--text-main); border: none; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
-        
-        #map { width: 100%; height: 250px; background: #334155; margin-top: 10px; border-radius: 15px; }
-        .gps-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-    </style>
-</head>
-<body>
-
-<div id="app-container">
-    
-    <!-- TELA MENU -->
-    <div id="screen-menu" class="screen active">
-        <div class="profile-section">
-            <div class="avatar">A</div>
-            <h2>Olá, Alcino!</h2>
-            <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
-        </div>
-        <div class="menu-grid">
-            <div class="menu-card" onclick="openScreen('screen-iniciante')">
-                <div class="menu-icon">💪</div>
-                <div><h2>Iniciante 1</h2><p>Circuito Full Body.</p></div>
-            </div>
-            <div class="menu-card" onclick="openScreen('screen-corrida')">
-                <div class="menu-icon">🏃‍♂️</div>
-                <div><h2>Corrida Livre</h2><p>GPS, Mapa e Ritmo.</p></div>
-            </div>
-        </div>
+<!-- TELA MENU ATUALIZADA -->
+<div id="screen-menu" class="screen active">
+    <div class="profile-section">
+        <div class="avatar">A</div>
+        <h2>Olá, Alcino!</h2>
+        <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
     </div>
-
-    <!-- TELA INICIANTE -->
-    <div id="screen-iniciante" class="screen">
-        <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Iniciante 1</h1></header>
-        <div class="timer-section">
-            <div class="timer-circle"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke="#334155" stroke-width="8" fill="none"/><circle id="circleProgress" cx="50" cy="50" r="45" stroke="#38bdf8" stroke-width="8" fill="none" stroke-dasharray="283" stroke-dashoffset="0"/></svg><div class="time-display" id="timeDisplay">30:00</div></div>
-            <div id="exTitle" style="font-size:1.5rem; font-weight:700;">Pronto?</div>
-            <div id="exDesc" style="color:var(--text-muted); margin-top:10px;">Suba na esteira.</div>
+    <div class="menu-grid" id="menuList">
+        <div class="menu-card" onclick="openScreen('screen-iniciante')">
+            <div class="menu-icon">💪</div>
+            <div><h2>Iniciante 1</h2><p>Circuito Full Body.</p></div>
         </div>
-        <div style="padding: 20px;"><button class="btn-play" id="btnPlay" onclick="toggleTimer()">▶ COMEÇAR</button></div>
-    </div>
-
-    <!-- TELA CORRIDA -->
-    <div id="screen-corrida" class="screen">
-        <header><button class="btn-back" onclick="stopRunAndExit()">❮</button><h1>Corrida</h1></header>
-        <div style="padding: 20px; text-align: center;">
-            <div class="gps-value" id="runTime">00:00:00</div>
-            <div style="display:flex; justify-content:space-around; margin-top:10px;">
-                <div><div style="color:var(--text-muted)">Dist</div><div class="gps-value" id="runDist">0.00</div></div>
-                <div><div style="color:var(--text-muted)">Km/h</div><div class="gps-value" id="runSpeed">0.0</div></div>
-            </div>
-            <div id="map"></div>
-            <button class="btn-play" style="margin-top:20px;" id="btnRunAction" onclick="toggleRun()">▶ INICIAR</button>
+        <div class="menu-card" onclick="openScreen('screen-corrida')">
+            <div class="menu-icon">🏃‍♂️</div>
+            <div><h2>Corrida Livre</h2><p>GPS e Mapa.</p></div>
         </div>
-    </div>
-
-    <!-- PLAYER GLOBAL (FIXO) -->
-    <div class="music-player">
-        <div class="music-info" id="musicStatus">📻 Rock / Gym Music</div>
-        <div class="music-controls">
-            <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
-            <button class="music-btn" onclick="nextStation()">⏭</button>
+        <!-- Botão Criar Treino -->
+        <div class="menu-card" onclick="openScreen('screen-assistant')" style="border: 2px dashed var(--primary);">
+            <div class="menu-icon">🤖</div>
+            <div><h2>Assistente IA</h2><p>Criar novo treino personalizado.</p></div>
         </div>
-        <audio id="rockRadio" preload="none"></audio>
     </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<!-- TELA ASSISTENTE -->
+<div id="screen-assistant" class="screen">
+    <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Configurar Treino</h1></header>
+    <div style="padding: 20px;">
+        <textarea id="aiForm" style="width:100%; height:300px; background:var(--bg-card); color:white; border-radius:10px; padding:10px; border:none;" 
+        placeholder="Copie e preencha:
+Nome:
+Idade:
+Peso/Altura:
+Local (Casa/Academia/Ar livre):
+Equipamentos:
+Objetivo:
+Tempo disponível:
+Restrições:"></textarea>
+        <button class="btn-play" style="margin-top:20px;" onclick="copyFormData()">📋 COPIAR DADOS P/ IA</button>
+    </div>
+</div>
+
 <script>
-    // --- LÓGICA GLOBAL ---
-    const synth = window.speechSynthesis;
-    function falar(texto) { if(synth.speaking) synth.cancel(); let u = new SpeechSynthesisUtterance(texto); u.lang='pt-BR'; synth.speak(u); }
-    
-    // --- MUSIC PLAYER ---
-    const stations = [{name:"Heavy Metal", url:"https://listen.181fm.com/181-hardrock_128k.mp3"}, {name:"Alt Rock", url:"https://listen.181fm.com/181-buzz_128k.mp3"}, {name:"Gym Energy", url:"https://listen.181fm.com/181-energy98_128k.mp3"}];
-    let currentStationIndex = 0;
-    const radioPlayer = document.getElementById('rockRadio');
-    let isMusicPlaying = false;
-    radioPlayer.src = stations[0].url;
-
-    function toggleMusic() {
-        if (isMusicPlaying) { radioPlayer.pause(); isMusicPlaying = false; document.getElementById('btnMusicPlay').textContent = "▶️"; } 
-        else { radioPlayer.play().then(() => { isMusicPlaying = true; document.getElementById('btnMusicPlay').textContent = "⏸"; }); }
+    function copyFormData() {
+        const text = document.getElementById('aiForm').value;
+        navigator.clipboard.writeText(text);
+        alert("Dados copiados! Agora cole aqui na nossa conversa para eu montar seu treino.");
     }
-    function nextStation() {
-        currentStationIndex = (currentStationIndex + 1) % stations.length;
-        radioPlayer.src = stations[currentStationIndex].url;
-        document.getElementById('musicStatus').textContent = `🎧 ${stations[currentStationIndex].name}`;
-        if(isMusicPlaying) radioPlayer.play();
-    }
-
-    // --- NAVEGAÇÃO ---
-    function openScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id==='screen-corrida' && map) map.invalidateSize(); }
-
-    // --- TREINOS ---
-    function toggleTimer() { /* ... Lógica do timer mantida ... */ falar("Treino iniciado"); }
-    function toggleRun() { /* ... Lógica do GPS mantida ... */ falar("Corrida iniciada"); }
-    function stopRunAndExit() { openScreen('screen-menu'); }
-
-    // --- INICIALIZAÇÃO MAPA ---
-    let map = L.map('map').setView([-22.9, -47.0], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM'}).addTo(map);
-
 </script>
-</body>
-    </html>
-    
