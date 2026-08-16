@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | App V3.0</title>
+    <title>Treino Alcino | App V3.1</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <style>
@@ -50,6 +50,7 @@
 
         .input-ia { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #fff; color: #000; font-size: 1rem; margin-bottom: 15px; font-family: inherit;}
         .textarea-ia { width: 100%; height: 150px; background: #fff; color: #000; border-radius: 10px; padding: 15px; border: none; font-size: 1rem; margin-bottom: 15px; font-family: inherit; resize: none;}
+        .btn-reset { padding:8px 15px; background:var(--forca); color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:600; margin-top:10px; }
     </style>
 </head>
 <body>
@@ -60,7 +61,7 @@
     <div id="screen-menu" class="screen active">
         <div class="profile-section">
             <div class="avatar">A</div>
-            <h2>Olá, Alcino!</h2>
+            <h2>Olá, Henrique!</h2>
             <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
         </div>
         <div class="menu-grid" id="menuList">
@@ -85,7 +86,7 @@
         </div>
     </div>
 
-    <!-- TELA ASSISTENTE IA (CORRIGIDA) -->
+    <!-- TELA ASSISTENTE IA -->
     <div id="screen-assistant" class="screen">
         <header><button class="btn-back" onclick="openScreen('screen-menu')">❮</button><h1>Personal Trainer IA</h1></header>
         
@@ -96,7 +97,7 @@
             </div>
             
             <p style="font-size: 0.95rem; margin-bottom: 10px; font-weight: 600;">Descreva como quer treinar hoje:</p>
-            <textarea id="aiForm" class="textarea-ia" placeholder="Ex: Sou o Alcino, tenho 1,85m e 95kg. Quero um treino de 15 minutos em casa. Tenho 2 halteres de 4kg e esteira. Foco em braços e cardio."></textarea>
+            <textarea id="aiForm" class="textarea-ia" placeholder="Ex: Sou o Henrique quero um treino de 20 minutos em casa, não tenho aparelho e quero foco em condicionamento."></textarea>
             
             <button class="btn-play" id="btnGerarTreino" onclick="gerarTreinoComIA()">🤖 MONTAR MEU TREINO</button>
             <div id="statusIA" style="margin-top:15px; font-size: 0.9rem; text-align: center; color: var(--primary); font-weight: 600;"></div>
@@ -145,7 +146,7 @@
         </div>
     </div>
 
-    <!-- PLAYER GLOBAL (FIXO NO RODAPÉ) -->
+    <!-- PLAYER GLOBAL -->
     <div class="music-player">
         <div class="music-info" id="musicStatus">📻 Rock / Gym Music</div>
         <div class="music-controls">
@@ -228,6 +229,13 @@
     }
 
     // --- 5. A INTELIGÊNCIA ARTIFICIAL (GERADOR) ---
+    function resetarChave() {
+        localStorage.removeItem('gemini_api_key');
+        document.getElementById('apiContainer').style.display = 'block';
+        document.getElementById('apiKey').value = '';
+        document.getElementById('statusIA').innerHTML = '';
+    }
+
     async function gerarTreinoComIA() {
         const status = document.getElementById('statusIA');
         const btn = document.getElementById('btnGerarTreino');
@@ -240,35 +248,44 @@
         localStorage.setItem('gemini_api_key', apiKey);
         document.getElementById('apiContainer').style.display = 'none';
 
-        status.textContent = "⏳ Analisando seu perfil e montando o treino...";
+        status.textContent = "⏳ Analisando perfil e montando treino...";
+        status.style.color = "var(--primary)";
         btn.disabled = true; btn.style.opacity = "0.5";
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
-        const instrucao = `Atue como um Personal Trainer. Baseado nestes dados do aluno: "${prompt}". Retorne APENAS um array JSON válido. Estrutura exata de cada objeto: {"title": "Nome do Exercício", "duration": segundos_como_numero, "desc": "Instrução", "type": "Força ou Cardio ou Descanso", "color": "var(--forca) ou var(--cardio) ou var(--descanso)", "spoken": "Nome curto para a voz falar"}. Nunca use crases ou markdown na resposta, apenas inicie com [ e termine com ].`;
+        const payload = {
+            "contents": [{
+                "parts": [{"text": `Atue como um Personal Trainer. Baseado nestes dados: "${prompt}". Retorne APENAS um array JSON válido. Estrutura de cada objeto: {"title": "Nome do Exercício", "duration": segundos_como_numero, "desc": "Instrução curta", "type": "Força ou Cardio ou Descanso", "color": "var(--forca) ou var(--cardio) ou var(--descanso)", "spoken": "Nome para a voz falar"}`}]
+            }],
+            "generationConfig": {
+                "responseMimeType": "application/json"
+            }
+        };
 
         try {
-            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({"contents": [{"parts": [{"text": instrucao}]}]}) });
+            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
             const data = await response.json();
             
-            if(data.error) throw new Error(data.error.message);
-
-            let jsonText = data.candidates[0].content.parts[0].text;
-            // Limpeza robusta do texto gerado pela IA
-            const firstBracket = jsonText.indexOf('[');
-            const lastBracket = jsonText.lastIndexOf(']');
-            if(firstBracket !== -1 && lastBracket !== -1) {
-                jsonText = jsonText.substring(firstBracket, lastBracket + 1);
+            if(!response.ok) {
+                throw new Error(data.error?.message || "Erro de conexão com o Google.");
             }
-            
+
+            const jsonText = data.candidates[0].content.parts[0].text;
             const novoTreino = JSON.parse(jsonText);
+            
+            if(!Array.isArray(novoTreino) || novoTreino.length === 0) {
+                throw new Error("O Google não retornou o treino no formato correto.");
+            }
+
             localStorage.setItem('treino_ia_alcino', JSON.stringify(novoTreino));
             
-            alert("✅ Treino montado com sucesso!");
-            location.reload(); // Recarrega para mostrar o botão novo
+            alert("✅ Treino montado com sucesso! Vamos abrí-lo agora.");
+            location.reload(); 
         } catch(e) {
-            status.textContent = "⚠️ Erro. Tente novamente ou verifique a API Key.";
-            console.error(e);
+            console.error("Erro IA:", e);
+            status.innerHTML = `⚠️ Falha: ${e.message}<br><br><button onclick="resetarChave()" class="btn-reset">Trocar API Key</button>`;
+            status.style.color = "var(--forca)";
             btn.disabled = false; btn.style.opacity = "1";
         }
     }
@@ -331,7 +348,7 @@
         const btn = document.getElementById('iaBtnPlay');
         if(!iaRunning) {
             if(iaStep === 0 && iaTimeLeft === iaPlan[0].duration) {
-                carregarTreinoIA(); // Garante carregamento
+                carregarTreinoIA();
                 speakIntelligent("Treino personalizado iniciado. " + iaPlan[0].spoken);
             }
             iaInterval = setInterval(tickIA, 1000);
@@ -342,11 +359,9 @@
         }
     }
     
-    // Carrega plano ao abrir o app
     carregarTreinoIA();
 
-    // --- 7. LÓGICA TREINO INICIANTE 1 (ESTÁTICO) E GPS (RESUMIDO) ---
-    // (Lógica simples para manter os outros botões funcionando)
+    // --- 7. LÓGICA TREINO INICIANTE 1 E GPS ---
     let t1Timer, t1Left = 1800, t1Run = false;
     function toggleTimer1() {
         const btn = document.getElementById('btnPlay1');
@@ -362,7 +377,6 @@
         openScreen('screen-menu');
     }
 
-    // Inicializa Mapa GPS
     let map = L.map('map').setView([-22.9, -47.0], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '© OSM'}).addTo(map);
     let runIsActive = false;
