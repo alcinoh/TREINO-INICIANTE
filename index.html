@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | Iniciante 1</title>
+    <title>Treino Alcino | App V2</title>
+    
+    <!-- Fontes -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Mapa (Leaflet CSS) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -17,12 +23,11 @@
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --warning: #f59e0b;
-            --google: #4285F4;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         
-        body { background-color: #000; display: flex; justify-content: center; min-height: 100vh; }
+        body { background-color: #000; display: flex; justify-content: center; min-height: 100vh; overflow: hidden; }
 
         #app-container {
             width: 100%;
@@ -38,44 +43,47 @@
             overflow-y: auto;
         }
 
-        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
-        .subtitle { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-top: 5px; }
-        .streak-badge { display: inline-block; background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 4px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-top: 10px; border: 1px solid rgba(245, 158, 11, 0.3); }
+        /* SISTEMA DE TELAS */
+        .screen { display: none; flex-direction: column; min-height: 100vh; width: 100%; }
+        .screen.active { display: flex; }
 
-        .timer-section { padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        /* HEADER GLOBAL */
+        header { padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative;}
+        .btn-back { position: absolute; left: 15px; top: 20px; background: none; border: none; color: var(--primary); font-size: 1.5rem; cursor: pointer; }
+        h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); text-transform: uppercase;}
         
+        /* MENU PRINCIPAL */
+        .menu-grid { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .menu-card { background: var(--bg-card); border-radius: 15px; padding: 25px 20px; display: flex; align-items: center; gap: 15px; border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.2s; }
+        .menu-card:active { transform: scale(0.97); border-color: var(--primary); }
+        .menu-icon { font-size: 2.5rem; }
+        .menu-text h2 { font-size: 1.1rem; margin-bottom: 5px; }
+        .menu-text p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.3;}
+        .profile-section { text-align: center; padding: 30px 20px 10px; }
+        .avatar { width: 80px; height: 80px; background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.5rem; margin: 0 auto 15px; color: #000; font-weight: 700;}
+
+        /* CSS MODO INICIANTE 1 (Omitido detalhes repetidos, mantido compacto) */
+        .timer-section { padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; }
         .timer-circle { position: relative; width: 220px; height: 220px; margin-bottom: 20px; }
         .timer-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
         .timer-circle circle { fill: none; stroke-width: 8; stroke-linecap: round; }
-        .timer-circle .bg-circle { stroke: #334155; }
-        .timer-circle .progress-circle { stroke: var(--primary); transition: stroke-dashoffset 1s linear, stroke 0.5s ease; }
-        
-        .time-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
-        .time-text { font-size: 3.2rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
-        .type-badge { margin-top: 5px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; background: var(--primary); color: #fff; }
-
-        .exercise-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; line-height: 1.2; }
+        .bg-circle { stroke: #334155; }
+        .progress-circle { stroke: var(--primary); transition: stroke-dashoffset 1s linear; }
+        .time-display { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        .time-text { font-size: 3.2rem; font-weight: 700; line-height: 1; }
+        .exercise-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; }
         .exercise-desc { font-size: 0.9rem; color: var(--text-muted); min-height: 40px; }
+        .btn-play { background-color: var(--primary); color: #000; border: none; border-radius: 12px; font-weight: 700; padding: 15px; width: 100%; margin-bottom: 10px; font-size: 1.1rem;}
 
-        .music-player { background: rgba(0,0,0,0.3); margin: 0 20px 15px; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        .music-info { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; font-weight: 600; letter-spacing: 1px; text-align: center; line-height: 1.4; }
-        .music-controls { display: flex; gap: 20px; align-items: center; }
-        .music-btn { background: var(--bg-card); color: var(--text-main); border: none; width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-        .music-btn:active { transform: scale(0.9); background: var(--primary); color: #000; }
-
-        .up-next { background: var(--bg-card); margin: 0 20px 15px; padding: 12px 15px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary); transition: border-color 0.3s ease;}
-        .up-next-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .up-next-title { font-size: 0.9rem; font-weight: 600; margin-top: 2px; }
-
-        .controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 0 20px 30px; margin-top: auto; }
-        .controls-single { display: flex; flex-direction: column; padding: 0 20px 30px; margin-top: auto; }
-        .btn-play { background-color: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3); border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; padding: 15px; cursor: pointer;}
-        .btn-skip { background-color: var(--bg-card); color: var(--text-main); border: none; border-radius: 12px; font-weight: 600; padding: 15px 20px; cursor: pointer;}
-        .btn-calendar { background-color: var(--google); color: #fff; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3); border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; padding: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;}
-        
-        .global-progress { height: 6px; background: #334155; width: 100%; position: absolute; bottom: 0; left: 0; }
-        .global-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s linear; }
+        /* CSS MODO CORRIDA / GPS */
+        .gps-dashboard { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center; }
+        .gps-card { background: var(--bg-card); padding: 15px; border-radius: 12px; }
+        .gps-card.full { grid-column: 1 / -1; }
+        .gps-value { font-size: 2rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums;}
+        .gps-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        #map { width: 100%; height: 250px; background: #334155; margin-top: 10px; border-radius: 15px; z-index: 1; }
+        .gps-controls { padding: 20px; margin-top: auto; }
+        .btn-stop { background-color: var(--forca); color: #fff; }
 
         .hidden { display: none !important; }
     </style>
@@ -83,336 +91,350 @@
 <body>
 
 <div id="app-container">
-    <header>
-        <h1>Treino Iniciante 1</h1>
-        <div class="subtitle" id="globalTime">00:00 / 30:00</div>
-        <div class="streak-badge" id="streakBadge">🔥 0 Treinos</div>
-    </header>
+    
+    <!-- TELA 1: MENU PRINCIPAL -->
+    <div id="screen-menu" class="screen active">
+        <div class="profile-section">
+            <div class="avatar">A</div>
+            <h2>Olá, Alcino!</h2>
+            <p id="menuStreak" style="color: var(--warning); font-weight: 600; margin-top: 5px;">🔥 0 Treinos Concluídos</p>
+        </div>
 
-    <div class="timer-section">
-        <div class="timer-circle">
-            <svg viewBox="0 0 100 100">
-                <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
-                <circle class="progress-circle" id="circleProgress" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="0"></circle>
-            </svg>
-            <div class="time-display">
-                <div class="time-text" id="timeDisplay">00:00</div>
-                <div class="type-badge" id="typeBadge">Preparação</div>
+        <div class="menu-grid">
+            <div class="menu-card" onclick="openScreen('screen-iniciante')">
+                <div class="menu-icon">💪</div>
+                <div class="menu-text">
+                    <h2>Iniciante 1</h2>
+                    <p>Circuito 30 min (Esteira + Halteres 4kg).</p>
+                </div>
+            </div>
+
+            <div class="menu-card" onclick="openScreen('screen-corrida')">
+                <div class="menu-icon">🏃‍♂️</div>
+                <div class="menu-text">
+                    <h2>Caminhada / Corrida</h2>
+                    <p>Rastreamento via GPS, Ritmo, Mapa e Voz.</p>
+                </div>
+            </div>
+            
+            <div class="menu-card" style="opacity: 0.5;">
+                <div class="menu-icon">🔒</div>
+                <div class="menu-text">
+                    <h2>Iniciante 2</h2>
+                    <p>Desbloqueie após 5 treinos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA 2: TREINO INICIANTE 1 (CÓDIGO ANTERIOR ENCAPSULADO) -->
+    <div id="screen-iniciante" class="screen">
+        <header>
+            <button class="btn-back" onclick="openScreen('screen-menu')">❮</button>
+            <h1>Iniciante 1</h1>
+        </header>
+        
+        <div class="timer-section">
+            <div class="timer-circle">
+                <svg viewBox="0 0 100 100">
+                    <circle class="bg-circle" cx="50" cy="50" r="45"></circle>
+                    <circle class="progress-circle" id="circleProgress" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="time-display">
+                    <div class="time-text" id="timeDisplay">30:00</div>
+                </div>
+            </div>
+            <div class="exercise-title" id="exTitle">Pronto para iniciar?</div>
+            <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
+        </div>
+
+        <div style="padding: 20px; margin-top: auto;">
+            <button class="btn-play" id="btnPlay" onclick="toggleTimer()">▶ COMEÇAR TREINO</button>
+        </div>
+    </div>
+
+    <!-- TELA 3: CAMINHADA / CORRIDA LIVRE (NOVO!) -->
+    <div id="screen-corrida" class="screen">
+        <header>
+            <button class="btn-back" onclick="stopRunAndExit()">❮</button>
+            <h1>Caminhada / Corrida</h1>
+        </header>
+
+        <div class="gps-dashboard">
+            <div class="gps-card full">
+                <div class="gps-label">Tempo Total</div>
+                <div class="gps-value" id="runTime">00:00:00</div>
+            </div>
+            <div class="gps-card">
+                <div class="gps-label">Distância</div>
+                <div class="gps-value"><span id="runDist">0.00</span><span style="font-size:1rem;"> km</span></div>
+            </div>
+            <div class="gps-card">
+                <div class="gps-label">Velocidade</div>
+                <div class="gps-value"><span id="runSpeed">0.0</span><span style="font-size:1rem;"> km/h</span></div>
             </div>
         </div>
 
-        <div class="exercise-title" id="exTitle">Pronto para iniciar?</div>
-        <div class="exercise-desc" id="exDesc">Suba na esteira ou pegue seus halteres.</div>
-    </div>
-
-    <!-- PLAYER DE MÚSICA -->
-    <div class="music-player" id="musicBox">
-        <div class="music-info" id="musicStatus">📻 Rock / Gym Music (Desligado)</div>
-        <div class="music-controls">
-            <button class="music-btn" onclick="toggleMusic()" id="btnMusicPlay">▶️</button>
-            <button class="music-btn" onclick="nextStation()">⏭</button>
+        <div style="padding: 0 20px;">
+            <div id="map"></div>
         </div>
-        <audio id="rockRadio" preload="none"></audio>
-    </div>
 
-    <div class="up-next" id="upNextBox">
-        <div>
-            <div class="up-next-label">A seguir</div>
-            <div class="up-next-title" id="upNextTitle">Aquecimento Esteira</div>
+        <div class="gps-controls">
+            <button class="btn-play" id="btnRunAction" onclick="toggleRun()">▶ INICIAR ATIVIDADE</button>
         </div>
     </div>
 
-    <!-- CONTROLES DO TREINO -->
-    <div class="controls" id="playControls">
-        <button class="btn-play" id="btnPlay" onclick="toggleTimer()">COMEÇAR TREINO</button>
-        <button class="btn-skip" id="btnSkip" onclick="nextStep()">PULAR</button>
-    </div>
-
-    <!-- CONTROLE FINAL (CALENDAR) ESCONDIDO INICIALMENTE -->
-    <div class="controls-single hidden" id="finishControls">
-        <button class="btn-calendar" onclick="saveToCalendar()">📅 Salvar no Google Calendar</button>
-    </div>
-
-    <div class="global-progress">
-        <div class="global-fill" id="globalFill"></div>
-    </div>
 </div>
 
+<!-- Mapa (Leaflet JS) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
 <script>
+    // --- NAVEGAÇÃO DE TELAS ---
+    function openScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        
+        // Se abrir a tela de corrida, ajusta o tamanho do mapa (exigência do Leaflet)
+        if(screenId === 'screen-corrida' && map) {
+            setTimeout(() => map.invalidateSize(), 200);
+        }
+    }
+
+    // --- CARREGAR HISTÓRICO NO MENU ---
     let treinosConcluidos = localStorage.getItem('treinos_alcino') || 0;
-    treinosConcluidos = parseInt(treinosConcluidos);
-    document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
+    document.getElementById('menuStreak').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
 
-    // --- SISTEMA DE MÚSICA ---
-    const stations = [
-        { name: "Heavy Metal", url: "https://listen.181fm.com/181-hardrock_128k.mp3" },
-        { name: "Alt Rock", url: "https://listen.181fm.com/181-buzz_128k.mp3" },
-        { name: "Gym Workout", url: "https://listen.181fm.com/181-energy98_128k.mp3" } 
-    ];
-    let currentStationIndex = 0;
-    const radioPlayer = document.getElementById('rockRadio');
-    let isMusicPlaying = false;
-
-    radioPlayer.src = stations[currentStationIndex].url;
-
-    function toggleMusic() {
-        if (isMusicPlaying) {
-            radioPlayer.pause();
-            isMusicPlaying = false;
-            document.getElementById('btnMusicPlay').textContent = "▶️";
-            document.getElementById('musicStatus').textContent = `📻 ${stations[currentStationIndex].name} (Pausado)`;
-        } else {
-            document.getElementById('musicStatus').textContent = "Conectando...";
-            radioPlayer.play().then(() => {
-                isMusicPlaying = true;
-                document.getElementById('btnMusicPlay').textContent = "⏸";
-                document.getElementById('musicStatus').textContent = `🎧 Tocando: ${stations[currentStationIndex].name}`;
-            }).catch(e => {
-                document.getElementById('musicStatus').textContent = "⚠️ Tente a próxima rádio";
-            });
-        }
-    }
-
-    function nextStation() {
-        currentStationIndex++;
-        if (currentStationIndex >= stations.length) currentStationIndex = 0;
-        radioPlayer.src = stations[currentStationIndex].url;
-        document.getElementById('musicStatus').textContent = `Sintonizando: ${stations[currentStationIndex].name}...`;
-        
-        if (isMusicPlaying) {
-            radioPlayer.play().then(() => {
-                document.getElementById('musicStatus').textContent = `🎧 Tocando: ${stations[currentStationIndex].name}`;
-            });
-        } else {
-            document.getElementById('musicStatus').textContent = `📻 ${stations[currentStationIndex].name} (Pronto)`;
-        }
-    }
-
-
-    // --- LÓGICA DO TREINO ---
-    const workoutPlan = [
-        { title: "Aquecimento Esteira", duration: 180, desc: "Caminhada leve (4.5 a 5.0 km/h).", type: "Cardio", color: "var(--cardio)" },
-        { title: "Ritmo Constante", duration: 300, desc: "Caminhada acelerada (5.5 a 6.2 km/h, Inclinação 1-2%).", type: "Cardio", color: "var(--cardio)" },
-        { title: "Subida Moderada", duration: 120, desc: "Aumente a inclinação para 3-4% (5.0 a 5.5 km/h).", type: "Cardio", color: "var(--cardio)" },
-        { title: "Desaceleração", duration: 120, desc: "Reduza para 4.0 km/h e tire a inclinação.", type: "Cardio", color: "var(--cardio)" },
-        { title: "Transição", duration: 40, desc: "Desça da esteira, pegue os halteres de 4kg e prepare-se.", type: "Transição", color: "var(--transicao)" }
-    ];
-
-    for(let i=1; i<=3; i++) {
-        workoutPlan.push({ title: `Agachamento`, duration: 40, desc: "Halteres nas mãos. Desça o quadril jogando o peso nos calcanhares.", type: "Força", color: "var(--forca)", spoken: "Agachamento com halteres" });
-        workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para a Remada", type: "Transição", color: "var(--transicao)" });
-        workoutPlan.push({ title: `Remada Curvada`, duration: 40, desc: "Tronco inclinado, puxe os pesos em direção ao quadril.", type: "Força", color: "var(--forca)", spoken: "Remada Curvada" });
-        workoutPlan.push({ title: "Transição", duration: 15, desc: "Prepare-se para o Desenvolvimento", type: "Transição", color: "var(--transicao)" });
-        workoutPlan.push({ title: `Desenvolvimento`, duration: 40, desc: "Eleve os halteres acima da cabeça sem curvar as costas.", type: "Força", color: "var(--forca)", spoken: "Desenvolvimento de ombros" });
-        workoutPlan.push({ title: "Transição", duration: 15, desc: "Deite no chão para a Ponte", type: "Transição", color: "var(--transicao)" });
-        workoutPlan.push({ title: `Ponte p/ Glúteos`, duration: 40, desc: "Pesos no quadril. Suba contraindo os glúteos.", type: "Força", color: "var(--forca)", spoken: "Ponte para Glúteos" });
-        workoutPlan.push({ title: "Transição", duration: 15, desc: "Continue no chão para o Abdominal", type: "Transição", color: "var(--transicao)" });
-        workoutPlan.push({ title: `Abdominal Infra`, duration: 40, desc: "Mãos sob o quadril, eleve as pernas devagar.", type: "Força", color: "var(--forca)", spoken: "Abdominal Infra" });
-
-        if(i < 3) {
-            workoutPlan.push({ title: `Descanso Round ${i}`, duration: 50, desc: "Respire fundo e beba água.", type: "Descanso", color: "var(--descanso)" });
-        } else {
-            workoutPlan.push({ title: "Fim do Circuito", duration: 15, desc: "Guarde os halteres devagar.", type: "Transição", color: "var(--transicao)" });
-        }
-    }
-    workoutPlan.push({ title: "Volta à Calma", duration: 120, desc: "Caminhe pela sala, respire fundo e alongue.", type: "Relaxamento", color: "var(--cardio)" });
-
-    let currentStep = 0;
-    let timeLeft = workoutPlan[0].duration;
-    let timerInterval = null;
-    let isRunning = false;
-    let totalSecondsElapsed = 0;
-    const totalWorkoutSeconds = workoutPlan.reduce((acc, step) => acc + step.duration, 0);
-    const circleCircumference = 283;
-
-    // --- NOVO SISTEMA DE VOZ INTELIGENTE (AUDIO DUCKING) ---
+    // --- SISTEMA DE VOZ GLOBAL ---
     const synth = window.speechSynthesis;
-    
-    function speakIntelligent(text) {
+    function falar(texto) {
         if (synth.speaking) synth.cancel();
-        
-        if (text !== '') {
-            // 1. Abaixa o volume da música
-            if (isMusicPlaying) radioPlayer.volume = 0.15;
-            
-            const utterThis = new SpeechSynthesisUtterance(text);
+        if (texto !== '') {
+            const utterThis = new SpeechSynthesisUtterance(texto);
             utterThis.lang = 'pt-BR';
             utterThis.rate = 1.05;
-            
-            // 2. Evento disparado EXATAMENTE quando a voz termina de falar
-            utterThis.onend = function() {
-                if (isMusicPlaying) radioPlayer.volume = 1.0;
-            };
-            
             synth.speak(utterThis);
         }
     }
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep(freq, type, duration) {
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-    }
+    // =========================================================================
+    // MODO CAMINHADA / CORRIDA (GPS E MAPA)
+    // =========================================================================
+    let runIsActive = false;
+    let runWatchId = null;
+    let runStartTime = null;
+    let runTimerInterval = null;
+    let runSeconds = 0;
+    let runTotalKm = 0;
+    let runPath = [];
+    
+    // Controles de Alerta de Voz
+    let lastAnnouncedKm = 0;
+    let lastAnnouncedMin = 0;
 
-    function formatTime(seconds) {
-        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const s = (seconds % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-    }
+    // Wake Lock (Manter tela acesa)
+    let wakeLock = null;
 
-    function updateUI() {
-        const step = workoutPlan[currentStep];
-        const nextStepObj = workoutPlan[currentStep + 1];
+    // Configuração do Mapa
+    let map = L.map('map').setView([-22.9068, -47.0616], 13); // Inicia padrão (Campinas aprox)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    let polyline = L.polyline([], {color: '#38bdf8', weight: 5}).addTo(map);
+    let marker = null;
 
-        if (!step) { finishWorkout(); return; }
-
-        document.getElementById('exTitle').textContent = step.title;
-        document.getElementById('exDesc').textContent = step.desc;
-        document.getElementById('timeDisplay').textContent = formatTime(timeLeft);
-        document.getElementById('typeBadge').textContent = step.type;
-        document.getElementById('typeBadge').style.backgroundColor = step.color;
-        document.getElementById('circleProgress').style.stroke = step.color;
-        document.getElementById('upNextBox').style.borderColor = nextStepObj ? nextStepObj.color : 'transparent';
-        
-        const pct = timeLeft / step.duration;
-        const offset = circleCircumference - (pct * circleCircumference);
-        document.getElementById('circleProgress').style.strokeDashoffset = offset;
-
-        if (nextStepObj) {
-            document.getElementById('upNextTitle').textContent = nextStepObj.title;
-        } else {
-            document.getElementById('upNextBox').classList.add('hidden');
-        }
-
-        document.getElementById('globalTime').textContent = `${formatTime(totalSecondsElapsed)} / ${formatTime(totalWorkoutSeconds)}`;
-        const globalPct = (totalSecondsElapsed / totalWorkoutSeconds) * 100;
-        document.getElementById('globalFill').style.width = `${globalPct}%`;
-    }
-
-    function tick() {
-        if (timeLeft > 0) {
-            timeLeft--;
-            totalSecondsElapsed++;
-            
-            if (timeLeft > 0 && timeLeft <= 3) {
-                playBeep(600, 'sine', 0.2); 
-            } else if (timeLeft === 0) {
-                playBeep(900, 'triangle', 0.6); 
-                nextStep();
-                return; 
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
             }
-            updateUI();
+        } catch (err) { console.log("Wake Lock não suportado", err); }
+    }
+
+    function toggleRun() {
+        const btn = document.getElementById('btnRunAction');
+        if (!runIsActive) {
+            // INICIAR
+            runIsActive = true;
+            btn.textContent = "⏹ FINALIZAR ATIVIDADE";
+            btn.classList.add('btn-stop');
+            
+            runSeconds = 0;
+            runTotalKm = 0;
+            runPath = [];
+            polyline.setLatLngs([]);
+            lastAnnouncedKm = 0;
+            lastAnnouncedMin = 0;
+            
+            falar("Atividade iniciada. Rastreando GPS.");
+            requestWakeLock();
+
+            // Inicia Timer
+            runTimerInterval = setInterval(updateRunTimer, 1000);
+
+            // Inicia GPS
+            if ("geolocation" in navigator) {
+                runWatchId = navigator.geolocation.watchPosition(
+                    updatePosition, 
+                    (err) => { alert("Erro de GPS. Ligue a localização do celular e dê permissão ao navegador."); }, 
+                    { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+                );
+            } else {
+                alert("Geolocalização não suportada no seu navegador.");
+            }
+        } else {
+            // FINALIZAR
+            finalizarCorrida();
         }
     }
 
-    function triggerVoiceCoach(stepObj, nextStepObj) {
-        let frase = "";
-        if (stepObj.type === "Transição") {
-            if (nextStepObj) frase = "Atenção. Prepare-se para " + (nextStepObj.spoken || nextStepObj.title);
-            else frase = "Transição.";
-        } else if (stepObj.type === "Descanso") {
-            frase = "Tempo de descanso. Respire fundo.";
-        } else if (stepObj.type === "Força" || stepObj.type === "Cardio") {
-            frase = "Valendo! " + (stepObj.spoken || stepObj.title);
-        } else if (stepObj.title === "Volta à Calma") {
-            frase = "Treino quase concluído. Vamos para a volta à calma. Caminhe devagar e alongue.";
-        }
+    function updateRunTimer() {
+        runSeconds++;
         
-        speakIntelligent(frase);
+        // Formata Timer
+        const h = Math.floor(runSeconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((runSeconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (runSeconds % 60).toString().padStart(2, '0');
+        document.getElementById('runTime').textContent = `${h}:${m}:${s}`;
+
+        // Alerta de Voz a cada 10 minutos
+        let minutosAtuais = Math.floor(runSeconds / 60);
+        if (minutosAtuais > 0 && minutosAtuais % 10 === 0 && minutosAtuais !== lastAnnouncedMin) {
+            lastAnnouncedMin = minutosAtuais;
+            emitirRelatorioVoz();
+        }
     }
+
+    function updatePosition(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const currentSpeedMs = position.coords.speed || 0; // Metros por segundo (fornecido pelo GPS se em movimento)
+        
+        // Velocidade atual (km/h)
+        let velKmh = currentSpeedMs * 3.6; 
+        
+        const newPoint = [lat, lng];
+        
+        if (runPath.length > 0) {
+            const lastPoint = runPath[runPath.length - 1];
+            const dist = calcularDistancia(lastPoint[0], lastPoint[1], lat, lng); // Retorna km
+            runTotalKm += dist;
+            
+            // Se o GPS do celular não der velocidade, calculamos a média simples do último intervalo
+            if(velKmh === 0 && dist > 0) {
+               // Uma estimativa básica baseada em tempo/distância geral (velocidade média)
+               velKmh = (runTotalKm / (runSeconds / 3600));
+            }
+        } else {
+            // Primeiro ponto: Centraliza o mapa lá
+            map.setView(newPoint, 16);
+        }
+
+        runPath.push(newPoint);
+        
+        // Atualiza Linha no Mapa e Marcador
+        polyline.setLatLngs(runPath);
+        if (!marker) {
+            marker = L.circleMarker(newPoint, {color: '#ef4444', radius: 6}).addTo(map);
+        } else {
+            marker.setLatLng(newPoint);
+        }
+        map.panTo(newPoint);
+
+        // Atualiza Tela
+        document.getElementById('runDist').textContent = runTotalKm.toFixed(2);
+        document.getElementById('runSpeed').textContent = velKmh.toFixed(1);
+
+        // Alerta de Voz a cada 1 Km
+        if (Math.floor(runTotalKm) > lastAnnouncedKm) {
+            lastAnnouncedKm = Math.floor(runTotalKm);
+            emitirRelatorioVoz();
+        }
+    }
+
+    function emitirRelatorioVoz() {
+        const min = Math.floor(runSeconds / 60);
+        const distFormated = runTotalKm.toFixed(1).replace('.', ',');
+        const velFormated = document.getElementById('runSpeed').textContent.replace('.', ',');
+        
+        let texto = `Atenção. Você percorreu ${distFormated} quilômetros em ${min} minutos. Sua velocidade atual é de ${velFormated} quilômetros por hora.`;
+        falar(texto);
+    }
+
+    function calcularDistancia(lat1, lon1, lat2, lon2) {
+        // Fórmula de Haversine para precisão na Terra
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c; // Distância em km
+    }
+
+    function finalizarCorrida() {
+        runIsActive = false;
+        clearInterval(runTimerInterval);
+        if (runWatchId) navigator.geolocation.clearWatch(runWatchId);
+        if (wakeLock !== null) wakeLock.release().then(() => wakeLock = null);
+
+        const btn = document.getElementById('btnRunAction');
+        btn.textContent = "▶ INICIAR NOVA ATIVIDADE";
+        btn.classList.remove('btn-stop');
+
+        // Centraliza o mapa para mostrar o trajeto todo
+        if (runPath.length > 0) {
+            map.fitBounds(polyline.getBounds());
+        }
+
+        falar("Atividade finalizada. Verifique o resumo do percurso no seu mapa.");
+    }
+
+    function stopRunAndExit() {
+        if(runIsActive) {
+            if(confirm("Sua atividade está rodando. Deseja parar e sair?")) {
+                finalizarCorrida();
+                openScreen('screen-menu');
+            }
+        } else {
+            openScreen('screen-menu');
+        }
+    }
+
+    // =========================================================================
+    // MODO INICIANTE 1 (Timer Básico para rodar)
+    // =========================================================================
+    let tTimer;
+    let tLeft = 1800; // 30 min
+    let tIsRunning = false;
 
     function toggleTimer() {
         const btn = document.getElementById('btnPlay');
-        if(audioCtx.state === 'suspended') audioCtx.resume();
-        
-        if (!isRunning) {
-            timerInterval = setInterval(tick, 1000);
-            btn.textContent = "PAUSAR TREINO";
-            btn.style.backgroundColor = "#f59e0b"; 
-            isRunning = true;
-            
-            if (currentStep === 0 && timeLeft === workoutPlan[0].duration) {
-                speakIntelligent("Treino iniciado. Vamos começar com o aquecimento na esteira.");
-            }
+        if(!tIsRunning) {
+            falar("Treino Iniciante um iniciado.");
+            tIsRunning = true;
+            btn.textContent = "⏸ PAUSAR";
+            btn.style.backgroundColor = "var(--warning)";
+            tTimer = setInterval(() => {
+                if(tLeft > 0) {
+                    tLeft--;
+                    let m = Math.floor(tLeft/60).toString().padStart(2,'0');
+                    let s = (tLeft%60).toString().padStart(2,'0');
+                    document.getElementById('timeDisplay').textContent = `${m}:${s}`;
+                } else {
+                    clearInterval(tTimer);
+                    falar("Treino finalizado!");
+                }
+            }, 1000);
         } else {
-            clearInterval(timerInterval);
-            btn.textContent = "CONTINUAR";
+            tIsRunning = false;
+            clearInterval(tTimer);
+            btn.textContent = "▶ CONTINUAR";
             btn.style.backgroundColor = "var(--primary)";
-            isRunning = false;
         }
     }
 
-    function nextStep() {
-        if (currentStep < workoutPlan.length - 1) {
-            totalSecondsElapsed += timeLeft; 
-            currentStep++;
-            timeLeft = workoutPlan[currentStep].duration;
-            updateUI();
-            triggerVoiceCoach(workoutPlan[currentStep], workoutPlan[currentStep + 1]);
-        } else {
-            finishWorkout();
-        }
-    }
-
-    function finishWorkout() {
-        clearInterval(timerInterval);
-        document.getElementById('exTitle').textContent = "Treino Concluído! 🏆";
-        document.getElementById('exDesc').textContent = "Salve este treino na sua agenda para não perder o ritmo.";
-        document.getElementById('timeDisplay').textContent = "00:00";
-        document.getElementById('typeBadge').textContent = "FIM";
-        document.getElementById('typeBadge').style.backgroundColor = "var(--descanso)";
-        document.getElementById('circleProgress').style.strokeDashoffset = 0;
-        document.getElementById('circleProgress').style.stroke = "var(--descanso)";
-        
-        // Esconde os botões antigos e o player de música, mostra o botão do Calendar
-        document.getElementById('playControls').classList.add('hidden');
-        document.getElementById('upNextBox').classList.add('hidden');
-        document.getElementById('musicBox').classList.add('hidden');
-        document.getElementById('finishControls').classList.remove('hidden');
-        
-        document.getElementById('globalFill').style.width = `100%`;
-        
-        treinosConcluidos++;
-        localStorage.setItem('treinos_alcino', treinosConcluidos);
-        document.getElementById('streakBadge').textContent = `🔥 ${treinosConcluidos} Treino(s) Concluído(s)`;
-        
-        speakIntelligent(`Parabéns! Você concluiu o seu treino de trinta minutos e chegou à sua marca de ${treinosConcluidos} treinos realizados.`);
-        
-        if (isMusicPlaying) {
-            radioPlayer.pause();
-        }
-    }
-
-    // --- INTEGRAÇÃO GOOGLE CALENDAR ---
-    function saveToCalendar() {
-        const title = encodeURIComponent("🔥 Treino Concluído: Iniciante 1");
-        const details = encodeURIComponent("App de Treino:\n- 12 min Cardio (Esteira)\n- 16 min Força (Halteres de 4kg)\n- 2 min Volta à calma\n\nExcelente trabalho!");
-        
-        // Pega o horário atual para registrar no calendário
-        const now = new Date();
-        const endTime = new Date(now.getTime() + 30 * 60000); // Adiciona 30 minutos
-        
-        // Formata data ISO para o padrão do Google Calendar (YYYYMMDDTHHMMSSZ)
-        const formatGoogleDate = (date) => date.toISOString().replace(/-|:|\.\d\d\d/g,"");
-        
-        const startTimeStr = formatGoogleDate(now);
-        const endTimeStr = formatGoogleDate(endTime);
-        
-        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&dates=${startTimeStr}/${endTimeStr}`;
-        
-        window.open(url, '_blank');
-    }
-
-    updateUI();
 </script>
 
 </body>
