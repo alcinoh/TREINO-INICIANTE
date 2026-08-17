@@ -65,6 +65,73 @@
         .hist-info { font-weight: 600; font-size: 0.95rem; }
         .icon-btn { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; padding: 6px; line-height: 1; flex-shrink: 0; }
         .icon-btn.danger { color: var(--forca); }
+
+        /* --- BONECO PALITO ANIMADO --- */
+        .stick-figure-box { width: 120px; height: 130px; margin: 0 auto 6px; color: var(--primary); transition: color 0.4s ease; }
+        .stick-figure-box svg { width: 100%; height: 100%; overflow: visible; }
+        .stick-figure-box svg line { stroke: currentColor; stroke-width: 6; stroke-linecap: round; }
+        .stick-figure-box svg circle.sf-head { fill: currentColor; }
+        .stick-figure-box .sf-arm-l, .stick-figure-box .sf-arm-r { transform-origin: 50px 30px; }
+        .stick-figure-box .sf-leg-l, .stick-figure-box .sf-leg-r { transform-origin: 50px 68px; }
+        .stick-figure-box.sf-paused svg * { animation-play-state: paused !important; }
+
+        /* Agachamento / Afundo */
+        .exercicio-agachamento .sf-upperbody { animation: sfSquatBody 1.3s ease-in-out infinite; }
+        .exercicio-agachamento .sf-leg-l { animation: sfSquatLegL 1.3s ease-in-out infinite; }
+        .exercicio-agachamento .sf-leg-r { animation: sfSquatLegR 1.3s ease-in-out infinite; }
+        @keyframes sfSquatBody { 0%,100% { transform: translateY(0); } 50% { transform: translateY(14px); } }
+        @keyframes sfSquatLegL { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-14deg); } }
+        @keyframes sfSquatLegR { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(14deg); } }
+
+        /* Polichinelo */
+        .exercicio-polichinelo .sf-upperbody { animation: sfJackBody 0.8s ease-in-out infinite; }
+        .exercicio-polichinelo .sf-arm-l { animation: sfJackArmL 0.8s ease-in-out infinite; }
+        .exercicio-polichinelo .sf-arm-r { animation: sfJackArmR 0.8s ease-in-out infinite; }
+        .exercicio-polichinelo .sf-leg-l { animation: sfJackLegL 0.8s ease-in-out infinite; }
+        .exercicio-polichinelo .sf-leg-r { animation: sfJackLegR 0.8s ease-in-out infinite; }
+        @keyframes sfJackBody { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        @keyframes sfJackArmL { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-165deg); } }
+        @keyframes sfJackArmR { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(165deg); } }
+        @keyframes sfJackLegL { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-22deg); } }
+        @keyframes sfJackLegR { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(22deg); } }
+
+        /* Flexão (corpo inclinado, quase na horizontal) */
+        .exercicio-flexao .sf-rig { transform-origin: 50px 120px; animation: sfPlankRig 1.6s ease-in-out infinite; }
+        .exercicio-flexao .sf-arm-l { animation: sfPushArmL 1.6s ease-in-out infinite; }
+        .exercicio-flexao .sf-arm-r { animation: sfPushArmR 1.6s ease-in-out infinite; }
+        @keyframes sfPlankRig { 0%,100% { transform: rotate(-72deg); } 50% { transform: rotate(-64deg); } }
+        @keyframes sfPushArmL { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(20deg); } }
+        @keyframes sfPushArmR { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-20deg); } }
+
+        /* Prancha (isométrico, quase parado) */
+        .exercicio-prancha .sf-rig { transform-origin: 50px 120px; animation: sfPlankHold 2.4s ease-in-out infinite; }
+        @keyframes sfPlankHold { 0%,100% { transform: rotate(-72deg); } 50% { transform: rotate(-70deg); } }
+
+        /* Abdominal (deitado, dobrando na cintura) */
+        .exercicio-abdominal .sf-rig { transform: rotate(-90deg); transform-origin: 50px 94px; }
+        .exercicio-abdominal .sf-upperbody { transform-origin: 50px 68px; animation: sfCrunch 1.4s ease-in-out infinite; }
+        @keyframes sfCrunch { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(35deg); } }
+
+        /* Cardio genérico (corrida no lugar, joelho alto, escalador, burpee, pular) */
+        .exercicio-cardio .sf-upperbody { animation: sfJogBody 0.6s ease-in-out infinite; }
+        .exercicio-cardio .sf-leg-l { animation: sfJogLeg 0.6s ease-in-out infinite; }
+        .exercicio-cardio .sf-leg-r { animation: sfJogLeg 0.6s ease-in-out infinite reverse; }
+        .exercicio-cardio .sf-arm-l { animation: sfJogArmL 0.6s ease-in-out infinite; }
+        .exercicio-cardio .sf-arm-r { animation: sfJogArmR 0.6s ease-in-out infinite; }
+        @keyframes sfJogBody { 0%,50%,100% { transform: translateY(0); } 25%,75% { transform: translateY(-8px); } }
+        @keyframes sfJogLeg { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-50deg); } }
+        @keyframes sfJogArmL { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(35deg); } }
+        @keyframes sfJogArmR { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-35deg); } }
+
+        /* Descanso (respiração leve, sem movimento brusco) */
+        .exercicio-descanso .sf-upperbody { animation: sfBreathe 2.6s ease-in-out infinite; }
+        @keyframes sfBreathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+
+        /* Força genérica (fallback para exercícios não reconhecidos) */
+        .exercicio-forca-generico .sf-arm-l { animation: sfLiftArmL 1.4s ease-in-out infinite; }
+        .exercicio-forca-generico .sf-arm-r { animation: sfLiftArmR 1.4s ease-in-out infinite; }
+        @keyframes sfLiftArmL { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
+        @keyframes sfLiftArmR { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } }
     </style>
 </head>
 <body>
@@ -183,6 +250,22 @@
     <div id="screen-treino-ia" class="screen">
         <header><button class="btn-back" onclick="openScreen('screen-galeria')">❮</button><h1 id="iaHeaderTitle">Treino Personalizado</h1></header>
         <div class="timer-section">
+            <div class="stick-figure-box sf-paused" id="stickFigureBox">
+                <svg viewBox="0 0 100 140" id="stickFigureSvg">
+                    <g class="sf-rig">
+                        <g class="sf-legs">
+                            <line class="sf-leg-l" x1="50" y1="68" x2="40" y2="120"/>
+                            <line class="sf-leg-r" x1="50" y1="68" x2="60" y2="120"/>
+                        </g>
+                        <g class="sf-upperbody">
+                            <line class="sf-torso" x1="50" y1="30" x2="50" y2="68"/>
+                            <line class="sf-arm-l" x1="50" y1="30" x2="38" y2="52"/>
+                            <line class="sf-arm-r" x1="50" y1="30" x2="62" y2="52"/>
+                            <circle class="sf-head" cx="50" cy="16" r="9"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
             <div class="timer-circle">
                 <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke="#334155" stroke-width="8" fill="none"/><circle id="iaCircleProgress" cx="50" cy="50" r="45" stroke="var(--primary)" stroke-width="8" fill="none" stroke-dasharray="283" stroke-dashoffset="0" style="transition: stroke-dashoffset 1s linear, stroke 0.5s ease;"/></svg>
                 <div class="time-display" id="iaTimeDisplay">00:00</div>
@@ -573,9 +656,44 @@
     let iaPlan = [], iaStep = 0, iaTimeLeft = 0, iaInterval = null, iaRunning = false, iaTotalDuration = 0;
     function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
 
+    // --- BONECO PALITO: reconhece o exercício pelo texto e escolhe a animação certa ---
+    function normalizarTexto(txt) {
+        return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    const MAPA_ANIMACOES_BONECO = [
+        { classe: 'exercicio-polichinelo', termos: ['polichinelo', 'jumping jack', 'estrelinha'] },
+        { classe: 'exercicio-agachamento', termos: ['agachamento', 'agachar', 'squat', 'afundo', 'avanco', 'lunge'] },
+        { classe: 'exercicio-flexao', termos: ['flexao', 'flexoes', 'push up', 'pushup', 'apoio de frente'] },
+        { classe: 'exercicio-prancha', termos: ['prancha', 'plank', 'isometria', 'isometrico'] },
+        { classe: 'exercicio-abdominal', termos: ['abdominal', 'abdominais', 'crunch', 'sit up', 'situp', 'canivete'] },
+        { classe: 'exercicio-cardio', termos: ['corrida', 'corra', 'joelho alto', 'high knees', 'escalador', 'mountain climber', 'burpee', 'salto', 'pular corda', 'elevacao de joelho', 'jump'] }
+    ];
+
+    function escolherAnimacaoBoneco(step) {
+        if (step.type === 'Descanso') return 'exercicio-descanso';
+        const textoBusca = normalizarTexto((step.title || '') + ' ' + (step.desc || ''));
+        for (const item of MAPA_ANIMACOES_BONECO) {
+            if (item.termos.some(termo => textoBusca.includes(termo))) return item.classe;
+        }
+        // Não reconheceu nenhum termo específico: usa um genérico com base no tipo.
+        if (step.type === 'Cardio') return 'exercicio-cardio';
+        return 'exercicio-forca-generico';
+    }
+
+    function aplicarAnimacaoBoneco(step) {
+        const box = document.getElementById('stickFigureBox');
+        const svg = document.getElementById('stickFigureSvg');
+        const classeAnimacao = escolherAnimacaoBoneco(step);
+        svg.setAttribute('class', classeAnimacao);
+        box.style.color = step.color || 'var(--primary)';
+    }
+
     function carregarTreinoIA(plano) {
         iaPlan = plano; iaStep = 0; iaTimeLeft = iaPlan[0].duration; iaTotalDuration = iaPlan.reduce((acc, step) => acc + step.duration, 0);
         clearInterval(iaInterval); iaRunning = false; document.getElementById('iaBtnPlay').textContent = "▶ COMEÇAR"; document.getElementById('iaBtnPlay').style.backgroundColor = "var(--primary)";
+        document.getElementById('stickFigureBox').classList.add('sf-paused');
+        aplicarAnimacaoBoneco(iaPlan[0]);
         atualizarTelaIA();
     }
 
@@ -596,16 +714,18 @@
 
     function avancarTreinoIA() {
         iaStep++;
-        if(iaStep < iaPlan.length) { iaTimeLeft = iaPlan[iaStep].duration; atualizarTelaIA(); speakIntelligent("Valendo! " + iaPlan[iaStep].spoken); }
-        else { clearInterval(iaInterval); iaRunning = false; registrarTreino('Treino IA Salvo', Math.round(iaTotalDuration/60)); speakIntelligent("Treino concluído!"); abrirDashboard(); }
+        if(iaStep < iaPlan.length) { iaTimeLeft = iaPlan[iaStep].duration; atualizarTelaIA(); aplicarAnimacaoBoneco(iaPlan[iaStep]); speakIntelligent("Valendo! " + iaPlan[iaStep].spoken); }
+        else { clearInterval(iaInterval); iaRunning = false; document.getElementById('stickFigureBox').classList.add('sf-paused'); registrarTreino('Treino IA Salvo', Math.round(iaTotalDuration/60)); speakIntelligent("Treino concluído!"); abrirDashboard(); }
     }
 
     function toggleTreinoIA() {
         const btn = document.getElementById('iaBtnPlay');
+        const stickBox = document.getElementById('stickFigureBox');
         if(!iaRunning) {
             if(iaStep === 0 && iaTimeLeft === iaPlan[0].duration) { speakIntelligent("Treino iniciado. " + iaPlan[0].spoken); }
             iaInterval = setInterval(tickIA, 1000); iaRunning = true; btn.textContent = "⏸ PAUSAR"; btn.style.backgroundColor = "var(--warning)";
-        } else { clearInterval(iaInterval); iaRunning = false; btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor = "var(--primary)"; }
+            stickBox.classList.remove('sf-paused');
+        } else { clearInterval(iaInterval); iaRunning = false; btn.textContent = "▶ CONTINUAR"; btn.style.backgroundColor = "var(--primary)"; stickBox.classList.add('sf-paused'); }
     }
 
     // --- TREINO INICIANTE E CORRIDA LIVRE ---
