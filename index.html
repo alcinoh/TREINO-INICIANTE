@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Treino Alcino | App V6.0</title>
+    <title>Treino Personalizado</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -74,7 +74,7 @@
     <!-- TELA DE LOGIN -->
     <div id="screen-login" class="screen active" style="justify-content:center; align-items:center; text-align:center; padding:30px;">
         <div style="font-size:3rem; margin-bottom:10px;">🏋️</div>
-        <h2 style="margin-bottom:10px; text-transform:none; letter-spacing:0; color:var(--text-main);">Treino Alcino</h2>
+        <h2 style="margin-bottom:10px; text-transform:none; letter-spacing:0; color:var(--text-main);">Treino Personalizado</h2>
         <p style="color:var(--text-muted); margin-bottom:25px; font-size:0.9rem;">Entre com sua conta Google para acessar seus treinos.</p>
         <div id="googleSignInDiv"></div>
         <div id="loginStatus" style="margin-top:15px; font-size:0.85rem; color:var(--warning);"></div>
@@ -236,7 +236,7 @@
 <script>
     // --- 0. CONFIGURAÇÃO DE BACKEND (Apps Script) E LOGIN GOOGLE ---
     // Troque pela URL /exec do seu Web App do Apps Script (veja instruções de instalação).
-    const PROXY_URL = 'COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT/exec';
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbwltsM4ltR349ssC6L0uqEFGbxMl9FNRW6vPpqs6ihinEf97UtI8DXwu_l3ScfCzu9a/exec';
     // Client ID criado no Google Cloud Console para o "Sign in with Google" (veja instruções).
     const GOOGLE_CLIENT_ID = '512064269375-vri4lfn8u5rtar25dfd9l7p52pmr18uj.apps.googleusercontent.com';
 
